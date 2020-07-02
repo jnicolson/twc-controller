@@ -1,6 +1,8 @@
 #include <WiFi.h>
 
+#include "twc.h"
 #include "twc_private.h"
+#include "ota.h"
 
 void setupWifi(char *ssid, char *key) {
     Serial.print("Setting up WiFi...");
@@ -22,11 +24,14 @@ void setup() {
     Serial.println("Booting...");
 
     setupWifi(SSID, PASSWORD);
+    setupOTA();
 
     pinMode(LED_BUILTIN, OUTPUT);
 }
 
 void loop() {
+    HandleOTA();
+
     digitalWrite(LED_BUILTIN, HIGH);
     delay(1000);
     digitalWrite(LED_BUILTIN, LOW);
