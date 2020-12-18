@@ -18,6 +18,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #ifndef TWC_PROTOCOL_H
 #define TWC_PROTOCOL_H
 
+#include "mqtt.h"
 #define GET_SERIAL_NUMBER	    0xFB19
 #define GET_MODEL_NUMBER	    0xFB1A
 #define GET_FIRMWARE_VER 	    0xFB1B

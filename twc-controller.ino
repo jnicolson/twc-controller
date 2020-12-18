@@ -23,12 +23,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "wifi.h"
 #include "ota.h"
+#include "mqtt.h"
 #include "config.h"
 #include "twc_protocol.h"
 #include "web.h"
 
 TWCConfig twc_config("/config.json");
 EasyButton button(RST_BUTTON);
+PangolinMQTT mqttClient;
+TeslaMqttIO mqtt(mqttClient);
 Wifi wifi;
 DNSServer dnsServer;
 AsyncWebServer server(80);
@@ -70,6 +73,7 @@ void setup() {
     web.Begin(server);
     ota.BeginWeb();
     ota.Begin();
+    mqtt.Begin(twc_config);
     MDNS.addService("http", "tcp", 80);
 
     button.onPressedFor(3000, buttonHeld);

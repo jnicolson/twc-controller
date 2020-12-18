@@ -14,3 +14,152 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 #include "mqtt.h"
+#include "config.h"
+
+TeslaMqttIO::TeslaMqttIO(PangolinMQTT &mqttClient) : 
+  mqttClient_(&mqttClient)
+{};
+
+void TeslaMqttIO::Begin(TWCConfig &twc_config) {
+  Serial.print("Connecting to MQTT... ");
+
+  // TODO: Fix this
+  mqttClient_->setServer(twc_config.mqtt.server, twc_config.mqtt.port);
+
+  mqttClient_->onConnect([this](bool sessionPresent){ this->onMqttConnect(sessionPresent); });
+  mqttClient_->onMessage([this](const char* topic, uint8_t* payload, struct PANGO_PROPS props, size_t len, size_t index, size_t total) { this->onMqttMessage(topic, payload, props, len, index, total); });
+  mqttClient_->onDisconnect([this](int8_t reason){ this->onMqttDisconnect(reason); });
+  mqttClient_->connect();
+  Serial.println("Done!");
+}
+
+void TeslaMqttIO::onMqttMessage(const char* topic, uint8_t* payload, struct PANGO_PROPS props, size_t len, size_t index, size_t total) {
+  if (std::string(topic) == "twc/packetSend") {
+    if (onRawMessageCallback_) onRawMessageCallback_(payload, len);
+  } else if (std::string(topic) == "twc/availableCurrent") {
+      uint8_t returnCurrent;
+      char *endPtr;
+      errno = 0;
+
+      long result = strtol((const char*)payload, &endPtr, 10);
+
+      if ((uint8_t*)endPtr == payload) {
+        Serial.printf("Error converting MQTT current to number!\r\n");
+        returnCurrent = 0;
+      } 
+
+      else if (errno != 0 && result == 0) {
+        Serial.printf("An unspecified error occured converting MQTT current\r\n");
+      }
+      
+      else if (errno == 0) {
+        if (result > UCHAR_MAX || result < CHAR_MIN) {
+          Serial.printf("Number %d out of range (range is 0-255)\r\n", result);
+          returnCurrent = 0;
+        } else {
+          returnCurrent = (uint8_t)result;
+        }
+      } else {
+        Serial.println("An error occured converting the MQTT current");
+      }
+      if(onCurrentMessageCallback_) onCurrentMessageCallback_(returnCurrent);
+
+  } else if (std::string(topic) == "twc/mode") {
+    if (std::string((const char*)payload) == "charge") {
+      // Just charge at the 
+    } else if (std::string((const char*)payload) == "stop") {
+      // stop charging
+    } else if (std::string((const char*)payload) == "follow") {
+      // follow the avaialble current
+    }
+  }
+  else if (std::string(topic) == "twc/debugEnabled")  {
+    if (std::string((const char*)payload) == "1") {
+      if(onDebugMessageCallback_) onDebugMessageCallback_(true);
+    } else {
+      if(onDebugMessageCallback_) onDebugMessageCallback_(false);
+    }
+  }
+  
+  else {
+    Serial.println("Unknown MQTT Message Received");
+  }
+}
+
+void TeslaMqttIO::onMqttConnect(bool sessionPresent) {
+  Serial.println("Connected to MQTT");
+  mqttClient_->subscribe("twc/#", 2);
+}
+
+void TeslaMqttIO::onMqttDisconnect(int8_t reason) {
+  Serial.println("Disconnected from MQTT.  Attempting to reconnect...");
+  mqttClient_->connect();
+}
+
+void TeslaMqttIO::onRawMessage(std::function<void(uint8_t*, size_t)> callback) {
+  onRawMessageCallback_ = callback;
+}
+
+void TeslaMqttIO::onChargeChangeMessage() {
+
+}
+
+void TeslaMqttIO::stopCharging() {
+
+}
+
+void TeslaMqttIO::onCurrentMessage(std::function<void(uint8_t)> callback) {
+  onCurrentMessageCallback_ = callback;
+}
+
+void TeslaMqttIO::onDebugMessage(std::function<void(bool)> callback) {
+  onDebugMessageCallback_ = callback;
+}
+
+void TeslaMqttIO::writeRaw(uint8_t *data, size_t length) {
+  char buffer[10];
+  uint8_t n;
+  n = sprintf(buffer, "%02x", *data);
+
+  mqttClient_->publish("twcraw", 2, false, (uint8_t *)buffer, n, false);
+}
+
+void TeslaMqttIO::writeRawPacket(uint8_t *data, size_t length) {
+  char buffer[64];
+  uint8_t n;
+  n = sprintf(buffer, "%02x", *data);
+
+  mqttClient_->publish("twcpacket", 2, false, (uint8_t *)buffer, n, false);
+}
+
+void TeslaMqttIO::writeState() {
+  //mqttClient.publish("topic", 2, true, payload)
+
+  /*
+
+  twc/total/connected_chargers
+  twc/total/connected_cars
+  twc/total/current_draw
+  twc/total/phase_1_current
+  twc/total/phase_2_current
+  twc/total/phase_3_current
+
+  twc/<twcid>/serial
+  twc/<twcid>/model
+  twc/<twcid>/firmware
+  twc/<twcid>/connected_vin
+  twc/<twcid>/plug_state
+  twc/<twcid>/total_kwh_delivered
+  twc/<twcid>/phase_1_voltage
+  twc/<twcid>/pahse_2_voltage
+  twc/<twcid>/phase_3_voltage
+  twc/<twcid>/phase_1_current
+  twc/<twcid>/pahse_2_current
+  twc/<twcid>/phase_3_current
+  twc/<twcid>/actual_current
+
+
+
+
+  */
+}
