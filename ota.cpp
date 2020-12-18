@@ -18,8 +18,81 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "twc_controller.h"
 #include "ota.h"
+#include "wifi.h"
 
-OTA::OTA() {};
+OTA::OTA(AsyncWebServer *server) {
+  id_ = String((uint32_t)ESP.getEfuseMac(), HEX);
+  server_ = server;
+};
+
+void OTA::BeginWeb() {
+  Serial.print("Starting OTA Web handlers... ");
+
+  server_->on("/update", HTTP_GET, [&](AsyncWebServerRequest *request){
+    AsyncWebServerResponse *response = request->beginResponse_P(200, "text/html", "temp");
+    response->addHeader("Content-Encoding", "gzip");
+    request->send(response);
+  });
+
+  server_->on("/update/identity", HTTP_GET, [&](AsyncWebServerRequest *request){
+    if (!request->authenticate(username_.c_str(), password_.c_str())) {
+			return request->requestAuthentication();
+		}
+
+      request->send(200, "application/json", "{\"id\": " + id_ + ", \"hardware\": \"ESP32\"}");
+		});
+
+  server_->on("/update", HTTP_POST, [&](AsyncWebServerRequest *request) {
+      // the request handler is triggered after the upload has finished... 
+      // create the response, add header, and send response
+      AsyncWebServerResponse *response = request->beginResponse((Update.hasError())?500:200, "text/plain", (Update.hasError())?"FAIL":"OK");
+      response->addHeader("Connection", "close");
+      response->addHeader("Access-Control-Allow-Origin", "*");
+      request->send(response);
+      restartRequired_ = true;
+  }, [&](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
+      //Upload handler chunks in data
+      if(authRequired_){
+          if(!request->authenticate(username_.c_str(), password_.c_str())){
+              return request->requestAuthentication();
+          }
+      }
+
+      if (!index) {
+          if(!request->hasParam("MD5", true)) {
+              return request->send(400, "text/plain", "MD5 parameter missing");
+          }
+
+          if(!Update.setMD5(request->getParam("MD5", true)->value().c_str())) {
+              return request->send(400, "text/plain", "MD5 parameter invalid");
+          }
+
+          int cmd = (filename == "filesystem") ? U_SPIFFS : U_FLASH;
+          if (!Update.begin(UPDATE_SIZE_UNKNOWN, cmd)) { // Start with max available size
+            Update.printError(Serial);
+            return request->send(400, "text/plain", "OTA could not begin");
+          }
+      }
+
+      // Write chunked data to the free sketch space
+      if(len){
+          if (Update.write(data, len) != len) {
+              return request->send(400, "text/plain", "OTA could not begin");
+          }
+      }
+          
+      if (final) { // if the final flag is set then this is the last frame of data
+          if (!Update.end(true)) { //true to set the size to the current progress
+              Update.printError(Serial);
+              return request->send(400, "text/plain", "Could not end OTA");
+          }
+      } else {
+          return;
+      }
+  });
+
+  Serial.println("Done!");
+}
 
 void OTA::Begin() {
   Serial.print("Setting up OTA... ");

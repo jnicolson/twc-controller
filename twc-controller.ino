@@ -15,17 +15,24 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <EasyButton.h>
 #include <SPIFFS.h>
+#include <DNSServer.h>
 #include <ESPmDNS.h>
 #include <ESPAsyncWebServer.h>
+
 #include "twc_controller.h"
+
 #include "wifi.h"
 #include "ota.h"
 #include "config.h"
 #include "twc_protocol.h"
 #include "web.h"
+
 TWCConfig twc_config("/config.json");
 EasyButton button(RST_BUTTON);
 Wifi wifi;
+DNSServer dnsServer;
+AsyncWebServer server(80);
+OTA ota(&server);
 Web web;
 void IRAM_ATTR buttonIsr() {
     button.read();
@@ -38,6 +45,10 @@ void buttonHeld() {
 // This is blocking and will restart the ESP32
 // at the end
 void StartConfigMode() {
+    wifi.BeginConfig();
+    dnsServer.start(53, "*", wifi.LocalIP());
+    ota.BeginWeb();
+    web.BeginPortal(server);
 }
 
 void setup() {
@@ -57,6 +68,7 @@ void setup() {
 
     wifi.Begin(twc_config);
     web.Begin(server);
+    ota.BeginWeb();
     ota.Begin();
     MDNS.addService("http", "tcp", 80);
 

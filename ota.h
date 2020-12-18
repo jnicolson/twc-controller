@@ -17,14 +17,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #define OTA_H
 
 #include <ArduinoOTA.h>
+#include <ESPAsyncWebServer.h>
 
 class OTA {
 public:
-    OTA();
+    OTA(AsyncWebServer *server);
+
     void Begin();
+    void BeginWeb();
     void Handle();
 
 private:
+    String id_;
+    String username_;
+    String password_;
+    AsyncWebServer *server_;
+    bool restartRequired_ = false;
+    bool authRequired_ = false;
 
 };
 
