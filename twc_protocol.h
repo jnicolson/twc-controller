@@ -137,4 +137,18 @@ typedef struct POWERSTATUS_T {
     uint8_t padding[2];
     uint8_t checksum;
 } POWERSTATUS_T;
+
+
+
+
+class TeslaController {
+    public:
+        TeslaController();
+
+        void Begin();
+
+    private:
+
+};
+
 #endif /* TWC_PROTOCOL_H */

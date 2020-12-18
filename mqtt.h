@@ -1,6 +1,5 @@
 /*
 TWC Manager for ESP32
-Copyright (C) 2020 Craig Peacock
 Copyright (C) 2020 Jarl Nicolson
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -14,13 +13,15 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "twc_protocol.h"
+#ifndef MQTT_H
+#define MQTT_H
 
-TeslaController::TeslaController() : 
-{
-}
+#include "io.h"
 
-void TeslaController::Begin() {
-}
+class TeslaMqttIO : public TeslaControllerIO {
+    public:
+        TeslaMqttIO();
+    private:
+};
 
-
+#endif /* MQTT_H */
