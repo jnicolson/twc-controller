@@ -52,4 +52,89 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define SECONDARY_VIN_MIDDLE    0xFDEF
 #define SECONDARY_VIN_LAST	    0xFDF1
 
+// Commands are SLIP encoded on the wire - need the SLIP constants
+#define SLIP_END        0xC0
+#define SLIP_ESC        0xDB
+#define SLIP_ESC_END    0xDC
+#define SLIP_ESC_ESC    0xDD
+
+#pragma pack(1)
+
+typedef struct PACKET_T {
+    uint16_t command;
+    uint16_t twcid;
+    uint16_t secondary_twcid;
+    uint8_t payload[8];
+    uint8_t checksum;
+} PACKET_T;
+
+typedef struct VIN_T {
+    uint16_t command;
+    uint16_t twcid;
+    uint8_t vin[7];
+    uint8_t padding[8];
+    uint8_t checksum;
+} VIN_T;
+
+typedef struct PRESENCE_T {
+    uint16_t    command;
+    uint16_t    twcid;
+    uint8_t     sign;
+    uint16_t    max_charge_rate;
+    uint8_t     padding[8];
+    uint8_t     checksum;
+} PRESENCE_T;
+
+typedef struct FIRMWARE_T {
+    uint16_t command;
+    uint8_t major;
+    uint8_t minor;
+    uint8_t revision;
+    uint8_t padding[8];
+    uint8_t checksum;
+} FIRMWARE_T;
+
+typedef struct PLUGSTATE_T {
+    uint16_t command;
+    uint16_t twcid;
+    uint8_t plug_state;
+    uint8_t padding[10];
+    uint8_t checksum;
+} PLUGSTATE_T;
+
+typedef struct S_HEARTBEAT_T {
+    uint16_t command;
+    uint16_t src_twcid;
+    uint16_t dst_twcid;
+    uint8_t status;
+    uint16_t max_current;
+    uint16_t actual_current;
+    uint8_t padding[4];
+    uint8_t checksum;
+} S_HEARTBEAT_T; 
+
+typedef struct P_HEARTBEAT_T {
+    uint16_t command;
+    uint16_t src_twcid;
+    uint16_t dst_twcid;
+    uint8_t payload;
+    uint16_t max_current;
+    uint8_t plug_inserted;
+    uint8_t padding[3];
+    uint8_t checksum;
+} P_HEARTBEAT_T; 
+
+typedef struct POWERSTATUS_T {
+    uint16_t command;
+    uint16_t twcid;
+    uint32_t total_kwh;
+    uint16_t phase1_voltage;
+    uint16_t phase2_voltage;
+    uint16_t phase3_voltage;
+    uint8_t phase1_current;
+    uint8_t phase2_current;
+    uint8_t phase3_current;
+    uint8_t padding[2];
+    uint8_t checksum;
+} POWERSTATUS_T;
 #endif /* TWC_PROTOCOL_H */
