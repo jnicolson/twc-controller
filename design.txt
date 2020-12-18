@@ -1,0 +1,32 @@
+* User takes it out of box and plugs it in to wall charger
+* TWC Manager starts WiFi AP (TWC_ChipID)
+* User connects to AP and TWC shows Captive Portal for WiFi configuration, MQTT server details and max current
+* TWC Manager restarts and starts listening for MQTT
+
+* TWC Manager writes its status to MQTT
+    * Cars charging
+    * Secondary Charger details
+        * Serial Number
+        * Model Number
+        * Firmware Version
+        * Plug State
+        * Voltages
+        * Total kWH delivered
+    * Cars
+    * Total Charger Load
+    * Charger Voltage
+
+* TWC Manager starts a webui showing
+    * Available Power
+    * OTA Firmware
+
+* On receipt of MQTT charge message
+    * Charge On: Start charge at set amps
+    * Charge Follow: Start charge at amps defined by the available power
+        * Check every x seconds and adjust amps
+* On receipt of MQTT current message
+    * Set amps
+* On receipt of MQTT current reset
+    * Set amps to max amps
+
+
