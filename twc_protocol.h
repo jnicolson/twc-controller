@@ -18,7 +18,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #ifndef TWC_PROTOCOL_H
 #define TWC_PROTOCOL_H
 
+#include "twc_controller.h"
 #include "mqtt.h"
+#include "twc_connector.h"
+
 #define GET_SERIAL_NUMBER	    0xFB19
 #define GET_MODEL_NUMBER	    0xFB1A
 #define GET_FIRMWARE_VER 	    0xFB1B
@@ -144,12 +147,62 @@ typedef struct POWERSTATUS_T {
 
 class TeslaController {
     public:
-        TeslaController();
+        TeslaController(HardwareSerial& serial, TeslaControllerIO& io);
 
         void Begin();
+        void GetPowerStatus();
+        void GetFirmware();        
+        void GetVIN();
+        void GetSerial();
+        void GetModelNo();
+        void GetFirmwareVer();
+        void GetPlugState();
+        void GetVin(uint16_t secondary_twcid);
+        void Handle();
+
+        void SendCommand(uint16_t command, uint16_t send_to);
+        void SendPresence(bool presence2 = false);
+        void SendPresence2();
+        void SendHeartbeat(uint16_t secondary_twcid);
+        void SendIdle();
+        void Startup();
+        void Debug(bool enabled);
+        void SendData(uint8_t *packet, size_t length);
+        void SendDataFromString(uint8_t *dataString, size_t length);
+        void DecodePowerState(POWERSTATUS_T *power_state);
+        void DecodePrimaryPresence(PRESENCE_T *presence, uint8_t num);
+        void DecodeSecondaryPresence(PRESENCE_T *presence);
+        void DecodeSecondaryHeartbeat(S_HEARTBEAT_T *heartbeat);
+        void DecodeSecondaryVin(VIN_T *vin);
+        void SetCurrent(uint8_t current);
+        void SetMaxCurrent(uint8_t maxCurrent);
+        uint8_t ChargersConnected();
+        TeslaConnector * GetConnector(uint16_t twcid);
+
 
     private:
+        uint8_t CalculateChecksum(uint8_t *buffer, size_t length);
+        bool VerifyChecksum(uint8_t *buffer, size_t length);
+        void DecodeLinkReady();
+        void DecodePrimaryHeartbeat();
+        void DecodeSecondaryHeartbeat();
+        void ProcessPacket(uint8_t *packet, size_t length);
+        static void startupTask_(void *pvParameter);
 
+    private:
+        HardwareSerial* serial_;
+        TeslaControllerIO* controller_io_;
+        uint8_t num_connected_chargers_;  
+        uint16_t twcid_;
+        uint8_t sign_;
+        uint8_t receive_buffer_[MAX_PACKET_LENGTH];
+        uint8_t receive_index_;
+        bool message_started_ = false;
+        uint8_t available_current_;
+        uint8_t max_current_;
+        bool current_changed_;
+        bool debug_;
+        TeslaConnector* chargers[3];
 };
 
 #endif /* TWC_PROTOCOL_H */

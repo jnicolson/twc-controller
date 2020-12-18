@@ -32,11 +32,16 @@ TWCConfig twc_config("/config.json");
 EasyButton button(RST_BUTTON);
 PangolinMQTT mqttClient;
 TeslaMqttIO mqtt(mqttClient);
+TeslaController controller(Serial1, mqtt);
 Wifi wifi;
 DNSServer dnsServer;
 AsyncWebServer server(80);
 OTA ota(&server);
+
 Web web;
+
+bool config_mode;
+
 void IRAM_ATTR buttonIsr() {
     button.read();
 }
@@ -74,12 +79,18 @@ void setup() {
     ota.BeginWeb();
     ota.Begin();
     mqtt.Begin(twc_config);
+    controller.Begin();
     MDNS.addService("http", "tcp", 80);
+
+    controller.SetMaxCurrent(twc_config.tesla.max_current);
 
     button.onPressedFor(3000, buttonHeld);
     if (button.supportsInterrupt()) {
         button.enableInterrupt(buttonIsr);
     };
+
+    controller.Startup();
+
     Serial.println("Starting loop...");
 }
 
@@ -89,4 +100,5 @@ void loop() {
     web.Handle();
     ota.Handle();
     button.update();
+    controller.Handle();
 }
