@@ -1,8 +1,9 @@
 #include <WiFi.h>
 
-#include "twc.h"
 #include "twc_private.h"
+#include "twc_controller.h"
 #include "ota.h"
+#include "twc_protocol.h"
 
 void setupWifi(char *ssid, char *key) {
     Serial.print("Setting up WiFi...");

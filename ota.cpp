@@ -16,7 +16,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <Arduino.h>
 #include <Update.h>
 
-#include "twc.h"
+#include "twc_controller.h"
 #include "ota.h"
 
 OTA::OTA() {};
