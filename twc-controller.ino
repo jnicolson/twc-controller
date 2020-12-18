@@ -15,13 +15,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <EasyButton.h>
 #include <SPIFFS.h>
+#include <ESPmDNS.h>
+#include <ESPAsyncWebServer.h>
 #include "twc_controller.h"
 #include "wifi.h"
 #include "ota.h"
 #include "config.h"
 #include "twc_protocol.h"
+#include "web.h"
 TWCConfig twc_config("/config.json");
 EasyButton button(RST_BUTTON);
+Wifi wifi;
+Web web;
 void IRAM_ATTR buttonIsr() {
     button.read();
 }
@@ -51,7 +56,9 @@ void setup() {
     };
 
     wifi.Begin(twc_config);
+    web.Begin(server);
     ota.Begin();
+    MDNS.addService("http", "tcp", 80);
 
     button.onPressedFor(3000, buttonHeld);
     if (button.supportsInterrupt()) {
@@ -63,6 +70,7 @@ void setup() {
 
 
 void loop() {
+    web.Handle();
     ota.Handle();
     button.update();
 }
