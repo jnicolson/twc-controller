@@ -56,7 +56,7 @@ MQTT is the main input/output for twc-controller.  The topics it listens to are:
 * twc/debugEnabled - send a 1 to this to enable serial debug
 
 ### OTA
-OTA will be setup to work via either a web browser (uploading the firmware) or ArduinoOTA.  Right now only ArduinoOTA is working.  To flash via ArduinoOTA for the ESP32, the following command can be used (replacing <ip address> and <fimware bin file> with the actual values)
+OTA will be setup to work via either a web browser (uploading the firmware) or ArduinoOTA.  Right now only ArduinoOTA is working.  To flash via ArduinoOTA for the ESP32, the following command can be used (replacing \<ip address> and \<fimware bin file> with the actual values)
 ```
 esptool.py -i "<ip address>" -p "3232" -f "<firmware bin file>"
 ```
