@@ -92,7 +92,7 @@ void TeslaController::Handle() {
     uint8_t receivedChar;
 
     while (serial_->available() > 0) {
-        receivedChar = serial_->read();
+        serial_->readBytes(&receivedChar, 1);
         
 
         if (receive_index_ > MAX_PACKET_LENGTH-1) {
@@ -102,7 +102,6 @@ void TeslaController::Handle() {
         }
 
         switch (receivedChar) {
-            
             case SLIP_END:
                 if (message_started_) {
                     ProcessPacket(receive_buffer_, receive_index_);
@@ -118,12 +117,23 @@ void TeslaController::Handle() {
                 break;
             
             case SLIP_ESC:
-                receivedChar = serial_->read();
+                // Use readBytes rather than read so that this blocks.  Previously using
+                // read, it would try to read too fast before the secondary had sent the next
+                // byte and this would fall through to default.  This meant bytes were not being
+                // decoded and the next character was appearing in the packet rather than the
+                // decoded character.  
 
+                // Check if readBytes returned 1 character.  If it didn't, it means
+                // the timeout was hit and therefore this should be discarded (dropping)
+                // the whole packet
+                if (serial_->readBytes(&receivedChar, 1) != 1) {
+                    Serial.println("Error while receiving packet data for a packet");
+                    return;
+                }
+                
                 switch (receivedChar) {
                     case SLIP_ESC_END:
                         receive_buffer_[receive_index_++] = SLIP_END;
-
                         break;
 
                     case SLIP_ESC_ESC:
