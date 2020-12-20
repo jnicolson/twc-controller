@@ -431,6 +431,14 @@ void TeslaController::SendData(uint8_t *packet, size_t length) {
         return;
     }
 
+    uint16_t command = ((uint16_t)packet[0]<<8) | packet[1];
+    switch (command) {
+        case WRITE_ID_DATE:
+        case WRITE_MODEL_NO:
+            Serial.println("WARNING! WRITE COMMANDS ATTEMPTED!  THESE CAN PERMANENTLY BREAK YOUR TWC.  COMMANDS BLOCKED!");
+            return;
+    }
+
     // Could probably get rid of the buffer and write directly to the serial port
     // but this way lets the value of the buffer be printed for debugging more easily
     outputBuffer[j++] = SLIP_END;

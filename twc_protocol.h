@@ -36,6 +36,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define GET_VIN_MIDDLE		    0xFBEF
 #define GET_VIN_LAST		    0xFBF1
 
+// The next two commands are ** DANGEROUS ** !
+// DO NOT USE THESE!  They are defined so that
+// they can be blocked.
+#define WRITE_ID_DATE           0xFC19
+#define WRITE_MODEL_NO          0xFC1A
+
 // Commands without responses (0xFC)
 #define IDLE_MESSAGE            0xFC1D
 #define START_CHARGING		    0xFCB1
