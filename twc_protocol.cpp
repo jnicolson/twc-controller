@@ -400,6 +400,8 @@ void TeslaController::ProcessPacket(uint8_t *packet, size_t length) {
             Serial.printf("%02x", packet[i]);
         }
         Serial.println();
+        
+        controller_io_->writeRawPacket(packet, length);
     }
 
     if (!VerifyChecksum(packet, length)) {

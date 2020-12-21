@@ -34,7 +34,7 @@ void TeslaMqttIO::Begin(TWCConfig &twc_config) {
 }
 
 void TeslaMqttIO::onMqttMessage(const char* topic, uint8_t* payload, struct PANGO_PROPS props, size_t len, size_t index, size_t total) {
-  if (std::string(topic) == "twc/packetSend") {
+  if (std::string(topic) == "twcDebug/packetSend") {
     if (onRawMessageCallback_) onRawMessageCallback_(payload, len);
   } else if (std::string(topic) == "twc/availableCurrent") {
       uint8_t returnCurrent;
@@ -89,6 +89,7 @@ void TeslaMqttIO::onMqttMessage(const char* topic, uint8_t* payload, struct PANG
 void TeslaMqttIO::onMqttConnect(bool sessionPresent) {
   Serial.println("Connected to MQTT");
   mqttClient_->subscribe("twc/#", 2);
+  mqttClient_->subscribe("twcDebug/packetSend", 2);
 }
 
 void TeslaMqttIO::onMqttDisconnect(int8_t reason) {
@@ -125,11 +126,12 @@ void TeslaMqttIO::writeRaw(uint8_t *data, size_t length) {
 }
 
 void TeslaMqttIO::writeRawPacket(uint8_t *data, size_t length) {
-  char buffer[64];
-  uint8_t n;
-  n = sprintf(buffer, "%02x", *data);
-
-  mqttClient_->publish("twcpacket", 2, false, (uint8_t *)buffer, n, false);
+  char buffer[length * 2];
+  char *target = buffer;
+  for (uint8_t i = 0; i < length; i++) {
+    target += sprintf(target, "%02x", data[i]);
+  }
+  mqttClient_->publish("twcDebug/packetReceive", 2, false, (uint8_t *)buffer, strlen(buffer), false);
 }
 
 void TeslaMqttIO::writeState() {
