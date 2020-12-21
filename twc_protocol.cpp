@@ -218,7 +218,7 @@ uint8_t TeslaController::ChargersConnected() {
 
 void TeslaController::SendHeartbeat(uint16_t secondary_twcid) {
     P_HEARTBEAT_T heartbeat;
-    heartbeat.command = htons(PRIMARY_HEATBEAT);
+    heartbeat.command = htons(PRIMARY_HEARTBEAT);
     heartbeat.src_twcid = twcid_;
     heartbeat.dst_twcid = secondary_twcid;
 
@@ -299,6 +299,33 @@ void TeslaController::DecodePrimaryPresence(PRESENCE_T *presence, uint8_t num) {
             presence->sign
         );
     }
+}
+
+void TeslaController::DecodePrimaryHeartbeat(P_HEARTBEAT_T *heartbeat) {
+    if (debug_) {
+        Serial.printf("Decoded: Primary Heartbeat - ID: %02x, To %02x, Payload %02x, Max Current: %d, Plug Inserted: %02x\r\n", 
+            heartbeat->src_twcid, 
+            heartbeat->dst_twcid,
+            heartbeat->payload,
+            htons(heartbeat->max_current),
+            heartbeat->plug_inserted
+        );
+    }
+
+    /*S_HEARTBEAT_T reply;
+    reply.command = SECONDARY_HEARTBEAT;
+    reply.src_twcid = twcid_
+    reply.dst_twcid = heartbeat->src_twcid;
+    reply.status = 
+    reply.max_current = 
+    reply.actual_current = 
+    for (uint8_t i = 0; i < 4; i++) {
+        reply.padding[i] = 0x00;
+    }
+
+    reply.checksum = CalculateChecksum(reply);
+
+    SendData((uint8_t*)&reply, sizeof(reply));*/
 }
 
 void TeslaController::DecodeSecondaryHeartbeat(S_HEARTBEAT_T *heartbeat) {
@@ -389,20 +416,23 @@ void TeslaController::ProcessPacket(uint8_t *packet, size_t length) {
         case PRIMARY_PRESENCE2:
             DecodePrimaryPresence((struct PRESENCE_T *)packet, 2);
             break;
-        case SECONDARY_PRESENCE:
-            DecodeSecondaryPresence((struct PRESENCE_T*)packet);
+        case PRIMARY_HEARTBEAT:
+            DecodePrimaryHeartbeat((struct P_HEARTBEAT_T *)packet);
             break;
-        case PWR_STATUS:
-            DecodePowerState((struct POWERSTATUS_T *)packet);
-			break;
+        case SECONDARY_PRESENCE:
+            DecodeSecondaryPresence((struct PRESENCE_T *)packet);
+            break;
         case SECONDARY_HEARTBEAT:
-            DecodeSecondaryHeartbeat((struct S_HEARTBEAT_T*)packet);
+            DecodeSecondaryHeartbeat((struct S_HEARTBEAT_T *)packet);
             break;
         case SECONDARY_VIN_FIRST:
         case SECONDARY_VIN_MIDDLE:
         case SECONDARY_VIN_LAST:
             DecodeSecondaryVin((struct VIN_T*)packet);
-            break;            
+            break;    
+        case PWR_STATUS:
+            DecodePowerState((struct POWERSTATUS_T *)packet);
+			break;       
         default:
             Serial.printf("Unknown packet type received: %#02x: 0x", command);
             for (uint8_t i = 0; i < length; i++) {

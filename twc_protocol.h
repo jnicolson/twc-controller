@@ -27,7 +27,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define GET_FIRMWARE_VER 	    0xFB1B
 #define GET_PLUG_STATE		    0xFBB4
 
-#define PRIMARY_HEATBEAT		0xFBE0
+#define PRIMARY_HEARTBEAT		0xFBE0
 #define PRIMARY_PRESENCE2	    0xFBE2
 
 #define GET_SECONDARY_PWR_STATE 0xFBEB
@@ -148,9 +148,6 @@ typedef struct POWERSTATUS_T {
     uint8_t checksum;
 } POWERSTATUS_T;
 
-
-
-
 class TeslaController {
     public:
         TeslaController(HardwareSerial& serial, TeslaControllerIO& io);
@@ -177,6 +174,7 @@ class TeslaController {
         void SendDataFromString(uint8_t *dataString, size_t length);
         void DecodePowerState(POWERSTATUS_T *power_state);
         void DecodePrimaryPresence(PRESENCE_T *presence, uint8_t num);
+        void DecodePrimaryHeartbeat(P_HEARTBEAT_T *heartbeat);
         void DecodeSecondaryPresence(PRESENCE_T *presence);
         void DecodeSecondaryHeartbeat(S_HEARTBEAT_T *heartbeat);
         void DecodeSecondaryVin(VIN_T *vin);
