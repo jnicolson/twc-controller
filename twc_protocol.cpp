@@ -104,6 +104,18 @@ void TeslaController::Handle() {
         switch (receivedChar) {
             case SLIP_END:
                 if (message_started_) {
+                    if (receive_index_ <= 2) {
+                        // TODO: can this be improved?  It seems a bit arbitary to just try and
+                        // detect small packets as errors.  The byte after the end frame always seems
+                        // to be a fairly high number (>= 0xFC).  I'm guessing it's meant to be 0xFF but
+                        // the last 1-2 bits are being dropped.  Maybe a better way would be to see if there is a
+                        // byte > 0xF0 but this could be caught out by data corruption too.
+
+                        // It's likely there was a corrupt start frame and so we're flipped
+                        // and thinking that the end is the start instead.  Reset this to be the start
+                        receive_index_ = 0;
+                        break;
+                    }
                     ProcessPacket(receive_buffer_, receive_index_);
 
                     message_started_ = false;
