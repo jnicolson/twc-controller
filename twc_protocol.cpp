@@ -224,12 +224,12 @@ void TeslaController::SendHeartbeat(uint16_t secondary_twcid) {
 
     if (current_changed_) {
         uint16_t encodedMax = available_current_ * 100;
-        heartbeat.payload = 0x09; // Limit power to the value from the next two bytes
+        heartbeat.state = 0x09; // Limit power to the value from the next two bytes
 
         // current * 100 (to get it to a whole number)
         heartbeat.max_current = htons(encodedMax);
     } else {
-        heartbeat.payload = 0x00;
+        heartbeat.state = 0x00;
         heartbeat.max_current = 0x00;
     }
 
@@ -303,10 +303,10 @@ void TeslaController::DecodePrimaryPresence(PRESENCE_T *presence, uint8_t num) {
 
 void TeslaController::DecodePrimaryHeartbeat(P_HEARTBEAT_T *heartbeat) {
     if (debug_) {
-        Serial.printf("Decoded: Primary Heartbeat - ID: %02x, To %02x, Payload %02x, Max Current: %d, Plug Inserted: %02x\r\n", 
+        Serial.printf("Decoded: Primary Heartbeat - ID: %02x, To %02x, State %02x, Max Current: %d, Plug Inserted: %02x\r\n", 
             heartbeat->src_twcid, 
             heartbeat->dst_twcid,
-            heartbeat->payload,
+            heartbeat->state,
             htons(heartbeat->max_current),
             heartbeat->plug_inserted
         );
@@ -333,7 +333,7 @@ void TeslaController::DecodeSecondaryHeartbeat(S_HEARTBEAT_T *heartbeat) {
         Serial.printf("Decoded: Secondary Heartbeat: ID: %02x, To: %02x, Status: %02x, Max Current: %d, Actual Current: %d\r\n",
             heartbeat->src_twcid,
             heartbeat->dst_twcid,
-            heartbeat->status,
+            heartbeat->state,
             htons(heartbeat->max_current),
             htons(heartbeat->actual_current)
         );
@@ -341,6 +341,15 @@ void TeslaController::DecodeSecondaryHeartbeat(S_HEARTBEAT_T *heartbeat) {
 
     TeslaConnector *c = GetConnector(heartbeat->src_twcid);
     c->SetActualCurrent(htons(heartbeat->actual_current));
+
+    // If the secondary changes it's state to 4, it's most likely because
+    // it's about to start charging.  Set the current changed flag
+    // so that we send the max current to the secondary again.
+    if (c->state != heartbeat->state) {
+        if (heartbeat->state == 4) {
+            current_changed_ = true;
+        }
+    }
 
 }
 

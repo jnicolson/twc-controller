@@ -116,7 +116,7 @@ typedef struct S_HEARTBEAT_T {
     uint16_t command;
     uint16_t src_twcid;
     uint16_t dst_twcid;
-    uint8_t status;
+    uint8_t state;
     uint16_t max_current;
     uint16_t actual_current;
     uint8_t padding[4];
@@ -127,7 +127,7 @@ typedef struct P_HEARTBEAT_T {
     uint16_t command;
     uint16_t src_twcid;
     uint16_t dst_twcid;
-    uint8_t payload;
+    uint8_t state;
     uint16_t max_current;
     uint8_t plug_inserted;
     uint8_t padding[3];
