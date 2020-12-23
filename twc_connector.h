@@ -26,6 +26,7 @@ class TeslaConnector {
         uint8_t* GetVin();
         void SetActualCurrent(uint16_t current);
         uint16_t twcid;
+        uint8_t state;
 
     private:
         uint8_t max_charge_rate_;
