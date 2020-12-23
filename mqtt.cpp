@@ -88,7 +88,9 @@ void TeslaMqttIO::onMqttMessage(const char* topic, uint8_t* payload, struct PANG
 
 void TeslaMqttIO::onMqttConnect(bool sessionPresent) {
   Serial.println("Connected to MQTT");
-  mqttClient_->subscribe("twc/#", 2);
+  mqttClient_->subscribe("twc/debugEnabled", 2);
+  mqttClient_->subscribe("twc/availableCurrent", 2);
+  mqttClient_->subscribe("twc/mode", 2);
   mqttClient_->subscribe("twcDebug/packetSend", 2);
 }
 
