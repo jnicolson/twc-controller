@@ -183,6 +183,7 @@ class TeslaController {
         uint8_t ChargersConnected();
         TeslaConnector * GetConnector(uint16_t twcid);
 
+        void UpdateTotalActualCurrent();
 
     private:
         uint8_t CalculateChecksum(uint8_t *buffer, size_t length);
@@ -206,6 +207,7 @@ class TeslaController {
         uint8_t max_current_;
         bool current_changed_;
         bool debug_;
+        float total_current_;
         TeslaConnector* chargers[3];
 };
 

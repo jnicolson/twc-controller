@@ -24,14 +24,15 @@ class TeslaConnector {
         TeslaConnector(uint16_t twcid, uint8_t max_charge_rate);
         void SetVin(uint8_t* upperVin);
         uint8_t* GetVin();
-        void SetActualCurrent(uint16_t current);
+        void SetActualCurrent(float current);
+        float GetActualCurrent();
         uint16_t twcid;
         uint8_t state;
 
     private:
         uint8_t max_charge_rate_;
         uint8_t vin_[18];
-        uint16_t actual_current_;
+        float actual_current_;
 };
 
 #endif /* TWC_CONNECTOR_H */

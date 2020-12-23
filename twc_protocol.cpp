@@ -340,7 +340,6 @@ void TeslaController::DecodeSecondaryHeartbeat(S_HEARTBEAT_T *heartbeat) {
     }
 
     TeslaConnector *c = GetConnector(heartbeat->src_twcid);
-    c->SetActualCurrent(htons(heartbeat->actual_current));
 
     // If the secondary changes it's state to 4, it's most likely because
     // it's about to start charging.  Set the current changed flag
@@ -350,7 +349,15 @@ void TeslaController::DecodeSecondaryHeartbeat(S_HEARTBEAT_T *heartbeat) {
             current_changed_ = true;
         }
     }
+    c->state = heartbeat->state;
 
+    // Check whether the current the secondary is charging at has changed.  If it has
+    // force an udpate of the total current being used and update the internal state
+    float newCurrent = htons(heartbeat->actual_current)/100;
+    if (newCurrent != c->GetActualCurrent()) {
+        c->SetActualCurrent(newCurrent);
+        UpdateTotalActualCurrent();
+    }
 }
 
 TeslaConnector * TeslaController::GetConnector(uint16_t twcid) {
@@ -375,6 +382,18 @@ void TeslaController::DecodeSecondaryPresence(PRESENCE_T *presence) {
         TeslaConnector *connector = new TeslaConnector(presence->twcid, presence->max_charge_rate);
         chargers[num_connected_chargers_++] = connector;
     }
+}
+
+void TeslaController::UpdateTotalActualCurrent() {
+    total_current_ = 0;
+    for (uint8_t i = 0; i < num_connected_chargers_; i++) {
+        total_current_ += chargers[i]->GetActualCurrent();
+    }
+
+    if (debug_) {
+        Serial.printf("Updating actual current to %f\r\n", total_current_);
+    }
+    controller_io_->writeActualCurrent(total_current_);
 }
 
 void TeslaController::DecodeSecondaryVin(VIN_T *vinData) {

@@ -36,7 +36,7 @@ class TeslaMqttIO : public TeslaControllerIO {
         void writeRawPacket(uint8_t *data, size_t length);
         void stopCharging();
         void writeState();
-
+        void writeActualCurrent(float actualCurrent);
     private:
         void onMqttConnect(bool sessionPresent);
         void onMqttDisconnect(int8_t reason);

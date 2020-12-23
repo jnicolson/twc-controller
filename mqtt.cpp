@@ -134,6 +134,12 @@ void TeslaMqttIO::writeRawPacket(uint8_t *data, size_t length) {
   mqttClient_->publish("twcDebug/packetReceive", 2, false, (uint8_t *)buffer, strlen(buffer), false);
 }
 
+void TeslaMqttIO::writeActualCurrent(float actualCurrent) {
+  char buffer[10];
+  snprintf(buffer, 10, "%f", actualCurrent);
+  mqttClient_->publish("twc/totalActualCurrent", 2, false, (uint8_t *)buffer, strlen(buffer), false);
+}
+
 void TeslaMqttIO::writeState() {
   //mqttClient.publish("topic", 2, true, payload)
 

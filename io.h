@@ -26,6 +26,7 @@ class TeslaControllerIO {
         virtual void onDebugMessage(std::function<void(bool)>) = 0;
         virtual void writeRaw(uint8_t*, size_t) = 0;
         virtual void writeRawPacket(uint8_t *data, size_t length) = 0;
+        virtual void writeActualCurrent(float) = 0;
         virtual void writeState() = 0;
         virtual void stopCharging() = 0;
 };
