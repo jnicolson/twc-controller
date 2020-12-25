@@ -51,7 +51,7 @@ void TeslaController::Begin() {
 
 // This method is called in arduino setup() to start the main controller loop (a FreeRTOS task)
 void TeslaController::Startup() {
-    Serial.print("Starting up Tesla Controller task... ");
+    Serial.print("Starting up Tesla Controller task as primary... ");
     xTaskCreate(this->startupTask_, "TeslaControllerTask", 2048, this, 1, NULL);
     Serial.println("Done!");
 }
@@ -110,11 +110,13 @@ void TeslaController::startupTask_(void *pvParameter) {
             } else {
                 commandNumber++;
             };
+            
         } else {
             vTaskDelay(1000+random(100,200)/portTICK_PERIOD_MS);
         }
     }
 
+    // This should never be reached, but just in case, make sure the task is cleaned up
     vTaskDelete(NULL);
 }
 
@@ -124,7 +126,6 @@ void TeslaController::Handle() {
 
     while (serial_->available() > 0) {
         serial_->readBytes(&receivedChar, 1);
-        
 
         if (receive_index_ > MAX_PACKET_LENGTH-1) {
             Serial.println("Packet length exceeded");
@@ -505,7 +506,11 @@ void TeslaController::ProcessPacket(uint8_t *packet, size_t length) {
     }
 
     if (!VerifyChecksum(packet, length)) {
-        Serial.println("Error processing packet - checksum verify failed");
+        Serial.printf("Error processing packet - checksum verify failed. Full packet: ");
+        for (uint8_t i = 0; i < length; i++) {
+            Serial.printf("%02x", packet[i]);
+        }
+        Serial.println();
         return;
     }
     
@@ -513,19 +518,16 @@ void TeslaController::ProcessPacket(uint8_t *packet, size_t length) {
 
 	switch (command) {
         case PRIMARY_PRESENCE:
-            DecodePrimaryPresence((struct PRESENCE_T *)packet, 1);
+            DecodePrimaryPresence((PRESENCE_T *)packet, 1);
             break;
         case PRIMARY_PRESENCE2:
-            DecodePrimaryPresence((struct PRESENCE_T *)packet, 2);
-            break;
-        case PRIMARY_HEARTBEAT:
-            DecodePrimaryHeartbeat((struct P_HEARTBEAT_T *)packet);
+            DecodePrimaryPresence((PRESENCE_T *)packet, 2);
             break;
         case SECONDARY_PRESENCE:
-            DecodeSecondaryPresence((struct PRESENCE_T *)packet);
+            DecodeSecondaryPresence((PRESENCE_T *)packet);
             break;
         case SECONDARY_HEARTBEAT:
-            DecodeSecondaryHeartbeat((struct S_HEARTBEAT_T *)packet);
+            DecodeSecondaryHeartbeat((S_HEARTBEAT_T *)packet);
             break;
         case RESP_VIN_FIRST:
         case RESP_VIN_MIDDLE:
@@ -541,6 +543,16 @@ void TeslaController::ProcessPacket(uint8_t *packet, size_t length) {
         case RESP_SERIAL_NUMBER:
             DecodeSerialNumber((EXTENDED_RESP_PACKET_T *)packet);
             break;
+        // The next commands would normally be sent by a primary so we won't receive them
+        // unless we're pretending to be a secondary (i.e. for debugging)
+        case PRIMARY_HEARTBEAT:
+            DecodePrimaryHeartbeat((P_HEARTBEAT_T *)packet);
+            break;
+        case GET_VIN_FIRST:
+        case GET_VIN_MIDDLE:
+        case GET_VIN_LAST:
+            //DecodeGetVin((PACKET_T*)packet)
+            break;   
         default:
             Serial.printf("Unknown packet type received: %#02x: 0x", command);
             for (uint8_t i = 0; i < length; i++) {
@@ -616,5 +628,3 @@ void TeslaController::SetMaxCurrent(uint8_t max_current) {
     // Always check to make sure we're not trying to higher than the global max
     max_current_ = max_current <= MAX_CURRENT ? max_current : MAX_CURRENT;
 }
-
-

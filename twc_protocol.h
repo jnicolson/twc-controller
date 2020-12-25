@@ -175,14 +175,12 @@ class TeslaController {
         void GetPlugState();
         void GetVin(uint16_t secondary_twcid);
         void Handle();
-
         void SendCommand(uint16_t command, uint16_t send_to);
         void SendPresence(bool presence2 = false);
         void SendPresence2();
         void SendHeartbeat(uint16_t secondary_twcid);
         void SendIdle();
         void Startup();
-        void Debug(bool enabled);
         void SendData(uint8_t *packet, size_t length);
         void DecodePowerState(EXTENDED_RESP_PACKET_T *power_state);
         void DecodePrimaryPresence(PRESENCE_T *presence, uint8_t num);
@@ -196,7 +194,6 @@ class TeslaController {
         void SetMaxCurrent(uint8_t maxCurrent);
         uint8_t ChargersConnected();
         TeslaConnector * GetConnector(uint16_t twcid);
-
         void UpdateTotalActualCurrent();
 
     private:
@@ -208,7 +205,9 @@ class TeslaController {
         void ProcessPacket(uint8_t *packet, size_t length);
         static void startupTask_(void *pvParameter);
 
+        void Debug(bool enabled);
         void SendDataFromString(const uint8_t* dataString, size_t length);
+
     private:
         HardwareSerial* serial_;
         TeslaControllerIO* controller_io_;
