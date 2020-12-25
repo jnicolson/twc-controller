@@ -279,7 +279,7 @@ void TeslaController::SendHeartbeat(uint16_t secondary_twcid) {
 
     heartbeat.plug_inserted = 0x00;
 
-    for (uint8_t i = 0; i < 3; i++) {
+    for (uint8_t i = 0; i < 5; i++) {
        heartbeat.padding[i] = 0x00;
     }    
         
@@ -293,7 +293,7 @@ void TeslaController::SendCommand(uint16_t command, uint16_t send_to) {
     packet.command = htons(command);
     packet.twcid = twcid_;
     packet.secondary_twcid = send_to;
-    for (uint8_t i = 0; i <= 7; i++) {
+    for (uint8_t i = 0; i < 6; i++) {
         packet.payload[i] = 0x00;
     }
     packet.checksum = CalculateChecksum((uint8_t*)&packet, sizeof(packet));

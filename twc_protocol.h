@@ -77,7 +77,7 @@ typedef struct PACKET_T {
     uint16_t command;
     uint16_t twcid;
     uint16_t secondary_twcid;
-    uint8_t payload[8];
+    uint8_t payload[6];
     uint8_t checksum;
 } PACKET_T;
 
@@ -131,7 +131,7 @@ typedef struct P_HEARTBEAT_T {
     uint8_t state;
     uint16_t max_current;
     uint8_t plug_inserted;
-    uint8_t padding[3];
+    uint8_t padding[5];
     uint8_t checksum;
 } P_HEARTBEAT_T; 
 
