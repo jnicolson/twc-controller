@@ -72,16 +72,47 @@ void TeslaController::startupTask_(void *pvParameter) {
         vTaskDelay(1000/portTICK_PERIOD_MS);
     };
 
+    uint8_t commandNumber = 0;
+        
     for (;;) {
-
         if (twc->ChargersConnected() > 0) {
             for (uint8_t i = 0; i < twc->ChargersConnected(); i++) {
                 twc->SendHeartbeat(twc->chargers[i]->twcid);
-            }
-            if (twc->current_changed_ == true) { twc->current_changed_ = false; };
-        }
 
-        vTaskDelay(1000+random(100,200)/portTICK_PERIOD_MS);
+                vTaskDelay(500+random(50,100)/portTICK_PERIOD_MS);
+                
+                switch (commandNumber) {
+                    case 0:
+                        twc->SendCommand(GET_VIN_FIRST, twc->chargers[i]->twcid);
+                        break;
+                    case 1:
+                        twc->SendCommand(GET_VIN_MIDDLE, twc->chargers[i]->twcid);
+                        break;
+                    case 2:
+                        twc->SendCommand(GET_VIN_LAST, twc->chargers[i]->twcid);
+                        break;
+                    case 3:
+                        twc->SendCommand(GET_SERIAL_NUMBER, twc->chargers[i]->twcid);
+                        break;
+                    case 4:
+                        twc->SendCommand(GET_PWR_STATE, twc->chargers[i]->twcid);
+                        break;
+                    case 5:
+                        twc->SendCommand(GET_FIRMWARE_VER_EXT, twc->chargers[i]->twcid);
+                        break;
+                }
+                vTaskDelay(1000+random(100,200)/portTICK_PERIOD_MS);
+            }
+
+            if (commandNumber >= 5) { 
+                commandNumber = 0; 
+            } else {
+                commandNumber++;
+            };
+            if (twc->current_changed_ == true) { twc->current_changed_ = false; };
+        } else {
+            vTaskDelay(1000+random(100,200)/portTICK_PERIOD_MS);
+        }
     }
 
     vTaskDelete(NULL);
