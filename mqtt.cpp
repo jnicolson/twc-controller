@@ -74,7 +74,7 @@ void TeslaMqttIO::onMqttMessage(const char* topic, const uint8_t* payload, size_
     }
   }
   else if (std::string(topic) == "twc/debugEnabled")  {
-    if (std::string((const char*)payload) == "1") {
+    if ((char)payload[0] == '1') {
       if(onDebugMessageCallback_) onDebugMessageCallback_(true);
     } else {
       if(onDebugMessageCallback_) onDebugMessageCallback_(false);
@@ -120,10 +120,11 @@ void TeslaMqttIO::onDebugMessage(std::function<void(bool)> callback) {
 }
 
 void TeslaMqttIO::writeRaw(uint8_t *data, size_t length) {
-  char buffer[10];
-  uint8_t n;
-  n = sprintf(buffer, "%02x", *data);
-
+  char buffer[length * 2];
+  char *target = buffer;
+  for (uint8_t i = 0; i < length; i++) {
+    target += sprintf(target, "%02x", data[i]);
+  }
   mqttClient_->publish("twcDebug/raw", (uint8_t *)buffer, strlen(buffer), 2, false);
 }
 
