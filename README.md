@@ -6,14 +6,16 @@ Credit goes to [WinterDragoness](https://teslamotorsclub.com/tmc/members/winterd
 
 ## Building
 This reqiures an ESP32 with a connected RS485 transceiver.  The pins the transceiver is connected (RX, TX and Enabled) are defined in twc_controller.h.  Building requires arduino with the following installed
-* Espressif ESP32 board support
-* PangolinMQTT
-* AsyncTCP
-* ArduinoJson
-* ESPAsyncWebServer
-* EasyButton
+
+* [Espressif ESP32 board support](https://github.com/espressif/arduino-esp32)
+* [PangolinMQTT](https://github.com/philbowles/PangolinMQTT)
+* [AsyncTCP](https://github.com/me-no-dev/AsyncTCP)
+* [ArduinoJson](https://github.com/bblanchon/ArduinoJson)
+* [ESPAsyncWebServer](https://github.com/me-no-dev/ESPAsyncWebServer)
+* [EasyButton](https://github.com/evert-arias/EasyButton)
 
 To build, I find using the arduino-cli the easiest.  Build with
+
 ```
 arduino-cli compile -e --fqbn espressif:esp32:esp32
 ```
@@ -57,6 +59,7 @@ MQTT is the main input/output for twc-controller.  The topics it listens to are:
 
 ### OTA
 OTA will be setup to work via either a web browser (uploading the firmware) or ArduinoOTA.  Right now only ArduinoOTA is working.  To flash via ArduinoOTA for the ESP32, the following command can be used (replacing \<ip address> and \<fimware bin file> with the actual values)
+
 ```
 esptool.py -i "<ip address>" -p "3232" -f "<firmware bin file>"
 ```
