@@ -54,12 +54,16 @@ The controller receives data from the serial port, assembled the data into a pac
 MQTT is the main input/output for twc-controller.  The topics it listens to are:
 
 * twc/availableCurrent - how much current the charger(s) can use
-* twc/packetSend - send a raw packet (needs the checksum, but without the SLIP_END byte on each end)
 * twc/debugEnabled - send a 1 to this to enable serial debug
 
 And it writes to:
-* twcDebug/packetReceive - Full packets received by the contoller but before they are decoded by type
 * twc/totalActualCurrent - Actual current in use by all TWCs
+
+There are also some topics used for debug.  Topics listened to:
+* twcDebug/packetSend - send a raw packet (needs the checksum, but without the SLIP_END byte on each end)
+
+Topics written to:
+* twcDebug/packetReceive - Full packets received by the contoller but before they are decoded by type
 * twcDebug/raw - Raw data from serial.  No processing done at all.
 
 ### OTA
