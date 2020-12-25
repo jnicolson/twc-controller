@@ -78,6 +78,7 @@ void TeslaController::startupTask_(void *pvParameter) {
         if (twc->ChargersConnected() > 0) {
             for (uint8_t i = 0; i < twc->ChargersConnected(); i++) {
                 twc->SendHeartbeat(twc->chargers[i]->twcid);
+                if (twc->current_changed_ == true) { twc->current_changed_ = false; };
 
                 vTaskDelay(500+random(50,100)/portTICK_PERIOD_MS);
                 
@@ -109,7 +110,6 @@ void TeslaController::startupTask_(void *pvParameter) {
             } else {
                 commandNumber++;
             };
-            if (twc->current_changed_ == true) { twc->current_changed_ = false; };
         } else {
             vTaskDelay(1000+random(100,200)/portTICK_PERIOD_MS);
         }
