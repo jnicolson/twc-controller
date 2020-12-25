@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "mqtt.h"
 #include "twc_connector.h"
 
-#define GET_SERIAL_NUMBER	    0xFB19
+#define GET_SERIAL_NUMBER_OLD	0xFB19
 #define GET_MODEL_NUMBER	    0xFB1A
 #define GET_FIRMWARE_VER 	    0xFB1B
 #define GET_PLUG_STATE		    0xFBB4
@@ -30,8 +30,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define PRIMARY_HEARTBEAT		0xFBE0
 #define PRIMARY_PRESENCE2	    0xFBE2
 
-#define GET_SECONDARY_PWR_STATE 0xFBEB
+#define GET_PWR_STATE           0xFBEB
 #define GET_FIRMWARE_VER_EXT    0xFBEC
+#define GET_SERIAL_NUMBER       0xFBED
 #define GET_VIN_FIRST		    0xFBEE
 #define GET_VIN_MIDDLE		    0xFBEF
 #define GET_VIN_LAST		    0xFBF1
@@ -49,7 +50,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define PRIMARY_PRESENCE	    0xFCE1
 
 // Responses (0xFD)
-#define RESP_SERIAL_NUMBER	    0xFD19
+#define RESP_SERIAL_NUMBER_OLD  0xFD19
 #define RESP_MODEL_NUMBER	    0xFD1A
 #define RESP_FIRMWARE_VER	    0xFD1B
 #define RESP_PLUG_STATE		    0xFDB4
@@ -57,10 +58,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define SECONDARY_HEARTBEAT		0xFDE0
 
 #define SECONDARY_PRESENCE	    0xFDE2		// Sent by secondary on reset
-#define PWR_STATUS              0xFDEB		// Sent by primary on reset
-#define SECONDARY_VIN_FIRST	    0xFDEE
-#define SECONDARY_VIN_MIDDLE    0xFDEF
-#define SECONDARY_VIN_LAST	    0xFDF1
+#define RESP_PWR_STATUS         0xFDEB		// Sent by primary on reset
+#define RESP_FIRMWARE_VER_EXT   0xFDEC
+#define RESP_SERIAL_NUMBER      0xFDED
+#define RESP_VIN_FIRST	        0xFDEE
+#define RESP_VIN_MIDDLE         0xFDEF
+#define RESP_VIN_LAST	        0xFDF1
 
 // Commands are SLIP encoded on the wire - need the SLIP constants
 #define SLIP_END        0xC0
@@ -78,13 +81,19 @@ typedef struct PACKET_T {
     uint8_t checksum;
 } PACKET_T;
 
-typedef struct VIN_T {
+typedef struct RESP_PACKET_T {
     uint16_t command;
     uint16_t twcid;
-    uint8_t vin[7];
-    uint8_t padding[8];
+    uint8_t payload[11];
     uint8_t checksum;
-} VIN_T;
+} RESP_PACKET_T;
+
+typedef struct EXTENDED_RESP_PACKET_T {
+    uint16_t command;
+    uint16_t twcid;
+    uint8_t payload[15];
+    uint8_t checksum;
+} EXTENDED_RESP_PACKET_T;
 
 typedef struct PRESENCE_T {
     uint16_t    command;
@@ -103,14 +112,6 @@ typedef struct FIRMWARE_T {
     uint8_t padding[8];
     uint8_t checksum;
 } FIRMWARE_T;
-
-typedef struct PLUGSTATE_T {
-    uint16_t command;
-    uint16_t twcid;
-    uint8_t plug_state;
-    uint8_t padding[10];
-    uint8_t checksum;
-} PLUGSTATE_T;
 
 typedef struct S_HEARTBEAT_T {
     uint16_t command;
@@ -134,9 +135,7 @@ typedef struct P_HEARTBEAT_T {
     uint8_t checksum;
 } P_HEARTBEAT_T; 
 
-typedef struct POWERSTATUS_T {
-    uint16_t command;
-    uint16_t twcid;
+typedef struct POWERSTATUS_PAYLOAD_T {
     uint32_t total_kwh;
     uint16_t phase1_voltage;
     uint16_t phase2_voltage;
@@ -145,8 +144,22 @@ typedef struct POWERSTATUS_T {
     uint8_t phase2_current;
     uint8_t phase3_current;
     uint8_t padding[2];
-    uint8_t checksum;
-} POWERSTATUS_T;
+} POWERSTATUS_PAYLOAD_T;
+
+typedef struct VIN_PAYLOAD_T {
+    uint8_t vin[7];
+    uint8_t padding[8];
+} VIN_PAYLOAD_T;
+
+typedef struct SERIAL_PAYLOAD_T {
+    uint8_t serial[11];
+    uint8_t padding[4];
+} SERIAL_PAYLOAD_T;
+
+typedef struct PLUGSTATE_PAYLOAD_T {
+    uint8_t plug_state;
+    uint8_t padding[10];
+} PLUGSTATE_PAYLOAD_T;
 
 class TeslaController {
     public:
@@ -171,12 +184,14 @@ class TeslaController {
         void Startup();
         void Debug(bool enabled);
         void SendData(uint8_t *packet, size_t length);
-        void DecodePowerState(POWERSTATUS_T *power_state);
+        void DecodePowerState(EXTENDED_RESP_PACKET_T *power_state);
         void DecodePrimaryPresence(PRESENCE_T *presence, uint8_t num);
         void DecodePrimaryHeartbeat(P_HEARTBEAT_T *heartbeat);
         void DecodeSecondaryPresence(PRESENCE_T *presence);
         void DecodeSecondaryHeartbeat(S_HEARTBEAT_T *heartbeat);
-        void DecodeSecondaryVin(VIN_T *vin);
+        void DecodeVin(EXTENDED_RESP_PACKET_T *vin);
+        void DecodeFirmwareVerison(RESP_PACKET_T *firmware_ver);
+        void DecodeSerialNumber(EXTENDED_RESP_PACKET_T *serial);
         void SetCurrent(uint8_t current);
         void SetMaxCurrent(uint8_t maxCurrent);
         uint8_t ChargersConnected();

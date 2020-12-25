@@ -289,23 +289,41 @@ bool TeslaController::VerifyChecksum(uint8_t *buffer, size_t length) {
     return false;
 }
 
-void TeslaController::DecodePowerState(POWERSTATUS_T *power_state) {
+void TeslaController::DecodeFirmwareVerison(RESP_PACKET_T *firmware_ver) {
+
+}
+
+void TeslaController::DecodeSerialNumber(EXTENDED_RESP_PACKET_T *serial) {
+    SERIAL_PAYLOAD_T *serial_payload = (SERIAL_PAYLOAD_T *)serial->payload;
+
     if (debug_) {
-        Serial.printf("Decoded: Power State ID: %02x, Total kWh %d, Phase Voltages: %d, %d, %d, Phase Currents: %d, %d, %d\r\n", 
+        Serial.printf("Decoded: ID: %04x, Serial Number: ", serial->twcid);
+        for (uint8_t i = 0; i < strlen((const char*)serial_payload->serial); i++) {
+            Serial.printf("%c", serial_payload->serial[i]);
+        }
+        Serial.println();
+    }
+
+}
+
+void TeslaController::DecodePowerState(EXTENDED_RESP_PACKET_T *power_state) {
+    POWERSTATUS_PAYLOAD_T *power_state_payload = (POWERSTATUS_PAYLOAD_T *)power_state->payload;
+    if (debug_) {
+        Serial.printf("Decoded: Power State ID: %04x, Total kWh %d, Phase Voltages: %d, %d, %d, Phase Currents: %d, %d, %d\r\n", 
         power_state->twcid, 
-        htonl(power_state->total_kwh), 
-        htons(power_state->phase1_voltage), 
-        htons(power_state->phase2_voltage), 
-        htons(power_state->phase3_voltage),
-        htons(power_state->phase1_current), 
-        htons(power_state->phase2_current), 
-        htons(power_state->phase3_current));
+        htonl(power_state_payload->total_kwh), 
+        htons(power_state_payload->phase1_voltage), 
+        htons(power_state_payload->phase2_voltage), 
+        htons(power_state_payload->phase3_voltage),
+        htons(power_state_payload->phase1_current), 
+        htons(power_state_payload->phase2_current), 
+        htons(power_state_payload->phase3_current));
     }
 }
 
 void TeslaController::DecodePrimaryPresence(PRESENCE_T *presence, uint8_t num) {
     if (debug_) {
-        Serial.printf("Decoded: Primary Presence %d - ID: %02x, Sign: %02x", 
+        Serial.printf("Decoded: Primary Presence %d - ID: %02x, Sign: %02x\r\n", 
             num,
             presence->twcid, 
             presence->sign
@@ -408,28 +426,39 @@ void TeslaController::UpdateTotalActualCurrent() {
     controller_io_->writeActualCurrent(total_current_);
 }
 
-void TeslaController::DecodeSecondaryVin(VIN_T *vinData) {
+void TeslaController::DecodeVin(EXTENDED_RESP_PACKET_T *vin_data) {
+    VIN_PAYLOAD_T *vin_payload = (VIN_PAYLOAD_T *)vin_data->payload;
     TeslaConnector *t;
 
     for (uint8_t i = 0; i < num_connected_chargers_; i++) {
-        if (chargers[i]->twcid == vinData->twcid) {
+        if (chargers[i]->twcid == vin_data->twcid) {
             t = chargers[i];
         }
     }
 
     uint8_t *vin = t->GetVin();
 
-    switch (vinData->command) {
-        case SECONDARY_VIN_FIRST:
-            memcpy(&vin[0], &vinData->vin, sizeof(vinData->vin));
+    switch (htons(vin_data->command)) {
+        case RESP_VIN_FIRST:
+            if (debug_) { Serial.printf("Decoded: ID: %04x, VIN First: ", vin_data->twcid); }
+            memcpy(&vin[0], &vin_payload->vin, sizeof(vin_payload->vin));
             break;
-        case SECONDARY_VIN_MIDDLE:
-            memcpy(&vin[7], &vinData->vin, sizeof(vinData->vin));
+        case RESP_VIN_MIDDLE:
+            if (debug_) { Serial.printf("Decoded: ID: %04x, VIN Middle: ", vin_data->twcid); }
+            memcpy(&vin[7], &vin_payload->vin, sizeof(vin_payload->vin));
             break;
-        case SECONDARY_VIN_LAST:
-            memcpy(&vin[14], &vinData->vin, 3);
+        case RESP_VIN_LAST:
+            if (debug_) { Serial.printf("Decoded: ID: %04x, VIN Last: ", vin_data->twcid); }
+            memcpy(&vin[14], &vin_payload->vin, 3);
             break;
     }
+    if (debug_) {
+        for (uint8_t i = 0; i < strlen((const char*)vin_payload->vin); i++) { 
+            Serial.printf("%c", vin_payload->vin[i]); 
+        };
+        Serial.println();
+    }
+    
 }
 
 // Process a fully received packet (i.e. data with C0 on each end)
@@ -467,14 +496,20 @@ void TeslaController::ProcessPacket(uint8_t *packet, size_t length) {
         case SECONDARY_HEARTBEAT:
             DecodeSecondaryHeartbeat((struct S_HEARTBEAT_T *)packet);
             break;
-        case SECONDARY_VIN_FIRST:
-        case SECONDARY_VIN_MIDDLE:
-        case SECONDARY_VIN_LAST:
-            DecodeSecondaryVin((struct VIN_T*)packet);
+        case RESP_VIN_FIRST:
+        case RESP_VIN_MIDDLE:
+        case RESP_VIN_LAST:
+            DecodeVin((EXTENDED_RESP_PACKET_T *)packet);
             break;    
-        case PWR_STATUS:
-            DecodePowerState((struct POWERSTATUS_T *)packet);
-			break;       
+        case RESP_PWR_STATUS:
+            DecodePowerState((EXTENDED_RESP_PACKET_T *)packet);
+			break;
+        case RESP_FIRMWARE_VER_EXT:
+            DecodeFirmwareVerison((RESP_PACKET_T *)packet);
+            break;
+        case RESP_SERIAL_NUMBER:
+            DecodeSerialNumber((EXTENDED_RESP_PACKET_T *)packet);
+            break;
         default:
             Serial.printf("Unknown packet type received: %#02x: 0x", command);
             for (uint8_t i = 0; i < length; i++) {
