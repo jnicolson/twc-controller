@@ -42,7 +42,7 @@ void TeslaController::Begin() {
     controller_io_->onChargeChangeMessage();
     controller_io_->onCurrentMessage([this](uint8_t current){ this->SetCurrent(current); });
     controller_io_->onDebugMessage([this](bool enabled){ this->Debug(enabled); });
-    controller_io_->onRawMessage([this](uint8_t* message, size_t length){ this->SendDataFromString(message, length); });
+    controller_io_->onRawMessage([this](const uint8_t* message, size_t length){ this->SendDataFromString(message, length); });
 
     receive_index_ = 0;
 
@@ -486,7 +486,7 @@ void TeslaController::ProcessPacket(uint8_t *packet, size_t length) {
     }
 }
 
-void TeslaController::SendDataFromString(uint8_t *dataString, size_t length) {
+void TeslaController::SendDataFromString(const uint8_t *dataString, size_t length) {
     uint8_t buffer[MAX_PACKET_LENGTH];
     uint8_t packetSize = hexCharacterStringToBytes(buffer, dataString, length);
 

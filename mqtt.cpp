@@ -27,13 +27,13 @@ void TeslaMqttIO::Begin(TWCConfig &twc_config) {
   mqttClient_->setServer(twc_config.mqtt.server, twc_config.mqtt.port);
 
   mqttClient_->onConnect([this](bool sessionPresent){ this->onMqttConnect(sessionPresent); });
-  mqttClient_->onMessage([this](const char* topic, uint8_t* payload, struct PANGO_PROPS props, size_t len, size_t index, size_t total) { this->onMqttMessage(topic, payload, props, len, index, total); });
+  mqttClient_->onMessage([this](const char* topic, const uint8_t* payload, size_t len, uint8_t qos, bool retain, bool dup) { this->onMqttMessage(topic, payload, len, qos, retain, dup); });
   mqttClient_->onDisconnect([this](int8_t reason){ this->onMqttDisconnect(reason); });
   mqttClient_->connect();
   Serial.println("Done!");
 }
 
-void TeslaMqttIO::onMqttMessage(const char* topic, uint8_t* payload, struct PANGO_PROPS props, size_t len, size_t index, size_t total) {
+void TeslaMqttIO::onMqttMessage(const char* topic, const uint8_t* payload, size_t len, uint8_t qos, bool retain, bool dup) {
   if (std::string(topic) == "twcDebug/packetSend") {
     if (onRawMessageCallback_) onRawMessageCallback_(payload, len);
   } else if (std::string(topic) == "twc/availableCurrent") {
@@ -99,7 +99,7 @@ void TeslaMqttIO::onMqttDisconnect(int8_t reason) {
   mqttClient_->connect();
 }
 
-void TeslaMqttIO::onRawMessage(std::function<void(uint8_t*, size_t)> callback) {
+void TeslaMqttIO::onRawMessage(std::function<void(const uint8_t*, size_t)> callback) {
   onRawMessageCallback_ = callback;
 }
 
@@ -124,7 +124,7 @@ void TeslaMqttIO::writeRaw(uint8_t *data, size_t length) {
   uint8_t n;
   n = sprintf(buffer, "%02x", *data);
 
-  mqttClient_->publish("twcraw", 2, false, (uint8_t *)buffer, n, false);
+  mqttClient_->publish("twcDebug/raw", (uint8_t *)buffer, strlen(buffer), 2, false);
 }
 
 void TeslaMqttIO::writeRawPacket(uint8_t *data, size_t length) {
@@ -133,13 +133,13 @@ void TeslaMqttIO::writeRawPacket(uint8_t *data, size_t length) {
   for (uint8_t i = 0; i < length; i++) {
     target += sprintf(target, "%02x", data[i]);
   }
-  mqttClient_->publish("twcDebug/packetReceive", 2, false, (uint8_t *)buffer, strlen(buffer), false);
+  mqttClient_->publish("twcDebug/packetReceive", (uint8_t *)buffer, strlen(buffer), 2, false);
 }
 
 void TeslaMqttIO::writeActualCurrent(float actualCurrent) {
   char buffer[10];
   snprintf(buffer, 10, "%f", actualCurrent);
-  mqttClient_->publish("twc/totalActualCurrent", 2, false, (uint8_t *)buffer, strlen(buffer), false);
+  mqttClient_->publish("twc/totalActualCurrent", (uint8_t *)buffer, strlen(buffer), 2, true);
 }
 
 void TeslaMqttIO::writeState() {
@@ -167,9 +167,6 @@ void TeslaMqttIO::writeState() {
   twc/<twcid>/pahse_2_current
   twc/<twcid>/phase_3_current
   twc/<twcid>/actual_current
-
-
-
 
   */
 }

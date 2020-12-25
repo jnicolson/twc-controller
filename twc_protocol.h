@@ -171,7 +171,6 @@ class TeslaController {
         void Startup();
         void Debug(bool enabled);
         void SendData(uint8_t *packet, size_t length);
-        void SendDataFromString(uint8_t *dataString, size_t length);
         void DecodePowerState(POWERSTATUS_T *power_state);
         void DecodePrimaryPresence(PRESENCE_T *presence, uint8_t num);
         void DecodePrimaryHeartbeat(P_HEARTBEAT_T *heartbeat);
@@ -194,6 +193,7 @@ class TeslaController {
         void ProcessPacket(uint8_t *packet, size_t length);
         static void startupTask_(void *pvParameter);
 
+        void SendDataFromString(const uint8_t* dataString, size_t length);
     private:
         HardwareSerial* serial_;
         TeslaControllerIO* controller_io_;

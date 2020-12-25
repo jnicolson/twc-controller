@@ -30,7 +30,7 @@ class TeslaMqttIO : public TeslaControllerIO {
         void Begin(TWCConfig &twc_config);
         void onChargeChangeMessage();
         void onCurrentMessage(std::function<void(uint8_t)>);
-        void onRawMessage(std::function<void(uint8_t*, size_t)> callback);
+        void onRawMessage(std::function<void(const uint8_t*, size_t)> callback);
         void onDebugMessage(std::function<void(bool)> callback);
         void writeRaw(uint8_t *data, size_t length);
         void writeRawPacket(uint8_t *data, size_t length);
@@ -40,11 +40,11 @@ class TeslaMqttIO : public TeslaControllerIO {
     private:
         void onMqttConnect(bool sessionPresent);
         void onMqttDisconnect(int8_t reason);
-        void onMqttMessage(const char* topic, uint8_t* payload, struct PANGO_PROPS props, size_t len, size_t index, size_t total);
+        void onMqttMessage(const char* topic, const uint8_t* payload, size_t len, uint8_t qos, bool retain, bool dup);
         
     
         PangolinMQTT *mqttClient_;
-        std::function<void(uint8_t*, size_t)> onRawMessageCallback_=nullptr;
+        std::function<void(const uint8_t*, size_t)> onRawMessageCallback_=nullptr;
         std::function<void(uint8_t)> onCurrentMessageCallback_=nullptr;
         std::function<void(bool)> onDebugMessageCallback_=nullptr;
 };

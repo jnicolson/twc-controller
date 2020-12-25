@@ -1,6 +1,6 @@
 #include "functions.h"
 
-uint8_t hexCharacterStringToBytes(uint8_t *byteArray, uint8_t *hexString, size_t length)
+uint8_t hexCharacterStringToBytes(uint8_t *byteArray, const uint8_t *hexString, size_t length)
 {
   //bool oddLength = strlen(hexString) & 1;
   bool oddLength = length & 1;

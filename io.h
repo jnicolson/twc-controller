@@ -22,7 +22,7 @@ class TeslaControllerIO {
         virtual ~TeslaControllerIO() {};
         virtual void onChargeChangeMessage(/* a function pointer goes here */) = 0;
         virtual void onCurrentMessage(std::function<void(uint8_t)>) = 0;
-        virtual void onRawMessage(std::function<void(uint8_t*, size_t)>) = 0; 
+        virtual void onRawMessage(std::function<void(const uint8_t*, size_t)>) = 0; 
         virtual void onDebugMessage(std::function<void(bool)>) = 0;
         virtual void writeRaw(uint8_t*, size_t) = 0;
         virtual void writeRawPacket(uint8_t *data, size_t length) = 0;
