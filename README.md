@@ -53,18 +53,18 @@ The controller receives data from the serial port, assembled the data into a pac
 ### MQTT
 MQTT is the main input/output for twc-controller.  The topics it listens to are:
 
-* twc/availableCurrent - how much current the charger(s) can use
-* twc/debugEnabled - send a 1 to this to enable serial debug
+* twcController/availableCurrent - how much current the charger(s) can use
+* twcController/debugEnabled - send a 1 to this to enable serial debug
 
 And it writes to:
-* twc/totalActualCurrent - Actual current in use by all TWCs
+* twcController/totalActualCurrent - Actual current in use by all TWCs
 
 There are also some topics used for debug.  Topics listened to:
-* twcDebug/packetSend - send a raw packet (needs the checksum, but without the SLIP_END byte on each end)
+* twcController/debug/packetSend - send a raw packet (needs the checksum, but without the SLIP_END byte on each end)
 
 Topics written to:
-* twcDebug/packetReceive - Full packets received by the contoller but before they are decoded by type
-* twcDebug/raw - Raw data from serial.  No processing done at all.
+* twcController/debug/packetReceive - Full packets received by the contoller but before they are decoded by type
+* twcController/debug/raw - Raw data from serial.  No processing done at all.
 
 ### OTA
 OTA will be setup to work via either a web browser (uploading the firmware) or ArduinoOTA.  Right now only ArduinoOTA is working.  To flash via ArduinoOTA for the ESP32, the following command can be used (replacing \<ip address> and \<fimware bin file> with the actual values)
