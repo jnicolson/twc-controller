@@ -143,12 +143,27 @@ void TeslaMqttIO::writeActualCurrent(float actualCurrent) {
   mqttClient_->publish("twcController/totalActualCurrent", (uint8_t *)buffer, strlen(buffer), 2, true);
 }
 
+void TeslaMqttIO::writeCharger(uint16_t twcid, uint8_t max_allowable_current) {
+  char topic[50];
+  snprintf(topic, 50, "twcController/twcs/%04x/max_allowable_current", twcid);
+
+  char buffer[10];
+  snprintf(buffer, 10, "%d", max_allowable_current);
+
+  mqttClient_->publish(topic, (uint8_t *)buffer, strlen(buffer), 2, true);
+}
+
+void TeslaMqttIO::writeTotalConnectedChargers(uint8_t connected_chargers) {
+  char buffer[10];
+  snprintf(buffer, 10, "%d", connected_chargers);
+  mqttClient_->publish("twcController/total/connected_chargers", (uint8_t *)buffer, strlen(buffer), 2, true);
+};
+
 void TeslaMqttIO::writeState() {
   //mqttClient.publish("topic", 2, true, payload)
 
   /*
 
-  twc/total/connected_chargers
   twc/total/connected_cars
   twc/total/current_draw
   twc/total/phase_1_current

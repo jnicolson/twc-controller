@@ -34,6 +34,8 @@ class TeslaMqttIO : public TeslaControllerIO {
         void onDebugMessage(std::function<void(bool)> callback);
         void writeRaw(uint8_t *data, size_t length);
         void writeRawPacket(uint8_t *data, size_t length);
+        void writeCharger(uint16_t twcid, uint8_t max_charge_rate);
+        void writeTotalConnectedChargers(uint8_t connected_chargers);
         void stopCharging();
         void writeState();
         void writeActualCurrent(float actualCurrent);

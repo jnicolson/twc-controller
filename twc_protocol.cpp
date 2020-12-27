@@ -445,9 +445,19 @@ void TeslaController::DecodeSecondaryPresence(RESP_PACKET_T *presence) {
     }
 
     if (!alreadySeen) {
-        Serial.printf("New charger seen - adding to controller. ID: %02x\r\n", presence->twcid);
-        TeslaConnector *connector = new TeslaConnector(presence->twcid, presence_payload->max_allowable_current);
+        Serial.printf("New charger seen - adding to controller. ID: %04x, Sign: %02x, Max Allowable Current: %d\r\n", 
+            presence->twcid, 
+            presence_payload->sign,
+            ntohs(presence_payload->max_allowable_current)
+        );
+
+        uint8_t max_allowable_current = (uint8_t)(ntohs(presence_payload->max_allowable_current)/100);
+
+        TeslaConnector *connector = new TeslaConnector(presence->twcid, max_allowable_current);
         chargers[num_connected_chargers_++] = connector;
+
+        controller_io_->writeCharger(connector->twcid, connector->max_allowable_current);
+        controller_io_->writeTotalConnectedChargers(num_connected_chargers_);
     }
 }
 
