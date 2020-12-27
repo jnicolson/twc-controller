@@ -29,6 +29,7 @@ class TeslaControllerIO {
         virtual void writeRawPacket(uint8_t *data, size_t length) = 0;
         virtual void writeActualCurrent(float) = 0;
         virtual void writeCharger(uint16_t, uint8_t) = 0;
+        virtual void writeChargerSerial(uint16_t, uint8_t*, size_t length) = 0;
         virtual void writeTotalConnectedChargers(uint8_t) = 0;
         virtual void writeChargerFirmware(uint16_t, EXT_FIRMWARE_PAYLOAD_T*) = 0;
         virtual void writeState() = 0;

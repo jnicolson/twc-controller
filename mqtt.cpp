@@ -154,6 +154,12 @@ void TeslaMqttIO::writeCharger(uint16_t twcid, uint8_t max_allowable_current) {
   mqttClient_->publish(topic, (uint8_t *)buffer, strlen(buffer), 2, true);
 }
 
+void TeslaMqttIO::writeChargerSerial(uint16_t twcid, uint8_t* serial, size_t length) {
+  char topic[50];
+  snprintf(topic, 50, "twcController/twcs/%04x/serial", twcid);
+
+  mqttClient_->publish(topic, serial, length, 2, true);
+} 
 void TeslaMqttIO::writeTotalConnectedChargers(uint8_t connected_chargers) {
   char buffer[10];
   snprintf(buffer, 10, "%d", connected_chargers);
@@ -182,7 +188,6 @@ void TeslaMqttIO::writeState() {
   twc/total/phase_2_current
   twc/total/phase_3_current
 
-  twc/<twcid>/serial
   twc/<twcid>/model
   twc/<twcid>/connected_vin
   twc/<twcid>/plug_state

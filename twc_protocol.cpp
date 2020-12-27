@@ -209,8 +209,8 @@ void TeslaController::Debug(bool enabled) {
     debug_ = enabled;
 }
 
-void TeslaController::GetSerial() {
-    SendCommand((uint16_t)GET_SERIAL_NUMBER, (uint16_t)0x0000);
+void TeslaController::GetSerial(uint16_t secondary_twcid) {
+    SendCommand(GET_SERIAL_NUMBER, secondary_twcid);
 }
 
 void TeslaController::GetModelNo() {
@@ -344,6 +344,14 @@ void TeslaController::DecodeExtFirmwareVerison(RESP_PACKET_T *firmware_ver) {
 
 void TeslaController::DecodeSerialNumber(EXTENDED_RESP_PACKET_T *serial) {
     SERIAL_PAYLOAD_T *serial_payload = (SERIAL_PAYLOAD_T *)serial->payload;
+
+    TeslaConnector *c = GetConnector(serial->twcid);
+
+    if (strcmp((const char*)c->serial_number, (const char*)serial_payload->serial) != 0) {
+        memcpy(&c->serial_number, &serial_payload->serial, strlen((const char*)serial_payload->serial));
+        controller_io_->writeChargerSerial(serial->twcid, c->serial_number, strlen((const char*)serial_payload->serial));
+    }
+    
 
     if (debug_) {
         Serial.printf("Decoded: ID: %04x, Serial Number: ", serial->twcid);
