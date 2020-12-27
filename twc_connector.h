@@ -30,6 +30,7 @@ class TeslaConnector {
         uint8_t state;
         uint8_t firmware_version[4];
         
+        uint8_t serial_number[11];
 
         uint8_t max_allowable_current;
     private:
