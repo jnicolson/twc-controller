@@ -95,16 +95,6 @@ typedef struct EXTENDED_RESP_PACKET_T {
     uint8_t checksum;
 } EXTENDED_RESP_PACKET_T;
 
-
-typedef struct FIRMWARE_T {
-    uint16_t command;
-    uint8_t major;
-    uint8_t minor;
-    uint8_t revision;
-    uint8_t padding[8];
-    uint8_t checksum;
-} FIRMWARE_T;
-
 typedef struct S_HEARTBEAT_T {
     uint16_t command;
     uint16_t src_twcid;
@@ -158,6 +148,14 @@ typedef struct PLUGSTATE_PAYLOAD_T {
     uint8_t plug_state;
     uint8_t padding[10];
 } PLUGSTATE_PAYLOAD_T;
+// Standard response packet Payload
+typedef struct EXT_FIRMWARE_PAYLOAD_T {
+    uint8_t major;
+    uint8_t minor;
+    uint8_t revision;
+    uint8_t extended;
+    uint8_t padding[7];
+} EXT_FIRMWARE_PAYLOAD_T;
 
 class TeslaController {
     public:
@@ -169,8 +167,8 @@ class TeslaController {
         void GetVIN();
         void GetSerial();
         void GetModelNo();
-        void GetFirmwareVer();
         void GetPlugState();
+        void GetFirmwareVer(uint16_t secondary_twcid);
         void GetVin(uint16_t secondary_twcid);
         void Handle();
         void SendCommand(uint16_t command, uint16_t send_to);
@@ -186,7 +184,7 @@ class TeslaController {
         void DecodeSecondaryPresence(RESP_PACKET_T *presence);
         void DecodeSecondaryHeartbeat(S_HEARTBEAT_T *heartbeat);
         void DecodeVin(EXTENDED_RESP_PACKET_T *vin);
-        void DecodeFirmwareVerison(RESP_PACKET_T *firmware_ver);
+        void DecodeExtFirmwareVerison(RESP_PACKET_T *firmware_ver);
         void DecodeSerialNumber(EXTENDED_RESP_PACKET_T *serial);
         void SetCurrent(uint8_t current);
         void SetMaxCurrent(uint8_t maxCurrent);

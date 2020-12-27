@@ -15,6 +15,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "mqtt.h"
 #include "config.h"
+#include "twc_protocol.h"
 
 TeslaMqttIO::TeslaMqttIO(PangolinMQTT &mqttClient) : 
   mqttClient_(&mqttClient)
@@ -159,6 +160,17 @@ void TeslaMqttIO::writeTotalConnectedChargers(uint8_t connected_chargers) {
   mqttClient_->publish("twcController/total/connected_chargers", (uint8_t *)buffer, strlen(buffer), 2, true);
 };
 
+void TeslaMqttIO::writeChargerFirmware(uint16_t twcid, EXT_FIRMWARE_PAYLOAD_T *firmware_payload) {
+  char topic[50];
+  snprintf(topic, 50, "twcController/twcs/%04x/firmware_version", twcid);
+  
+  char buffer[10];
+  snprintf(buffer, 10, "%d.%d.%d.%d", 
+    firmware_payload->major, 
+    firmware_payload->minor, 
+    firmware_payload->revision, 
+    firmware_payload->extended
+  );
 void TeslaMqttIO::writeState() {
   //mqttClient.publish("topic", 2, true, payload)
 
@@ -172,7 +184,6 @@ void TeslaMqttIO::writeState() {
 
   twc/<twcid>/serial
   twc/<twcid>/model
-  twc/<twcid>/firmware
   twc/<twcid>/connected_vin
   twc/<twcid>/plug_state
   twc/<twcid>/total_kwh_delivered

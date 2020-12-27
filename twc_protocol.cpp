@@ -217,8 +217,8 @@ void TeslaController::GetModelNo() {
     SendCommand((uint16_t)GET_MODEL_NUMBER, (uint16_t)0x0000);
 }
 
-void TeslaController::GetFirmwareVer() {
-    SendCommand((uint16_t)GET_FIRMWARE_VER, (uint16_t)0x0000);
+void TeslaController::GetFirmwareVer(uint16_t secondary_twcid) {
+    SendCommand(GET_FIRMWARE_VER, secondary_twcid);
 }
 
 void TeslaController::GetVin(uint16_t secondary_twcid) {
@@ -323,8 +323,23 @@ bool TeslaController::VerifyChecksum(uint8_t *buffer, size_t length) {
     return false;
 }
 
-void TeslaController::DecodeFirmwareVerison(RESP_PACKET_T *firmware_ver) {
+void TeslaController::DecodeExtFirmwareVerison(RESP_PACKET_T *firmware_ver) {
+    EXT_FIRMWARE_PAYLOAD_T *firmware_payload = (EXT_FIRMWARE_PAYLOAD_T *)firmware_ver->payload;
+    
+    TeslaConnector *c = GetConnector(firmware_ver->twcid);
+    memcpy(&c->firmware_version, &firmware_payload, 4);
 
+    controller_io_->writeChargerFirmware(firmware_ver->twcid, firmware_payload);
+    
+    if (debug_) {
+        Serial.printf("Decoded: ID: %04x, Firmware Ver: %d.%d.%d.%d\r\n", 
+            firmware_ver->twcid, 
+            firmware_payload->major, 
+            firmware_payload->minor, 
+            firmware_payload->revision,
+            firmware_payload->extended
+        );
+    }
 }
 
 void TeslaController::DecodeSerialNumber(EXTENDED_RESP_PACKET_T *serial) {
@@ -553,7 +568,7 @@ void TeslaController::ProcessPacket(uint8_t *packet, size_t length) {
             DecodePowerState((EXTENDED_RESP_PACKET_T *)packet);
 			break;
         case RESP_FIRMWARE_VER_EXT:
-            DecodeFirmwareVerison((RESP_PACKET_T *)packet);
+            DecodeExtFirmwareVerison((RESP_PACKET_T *)packet);
             break;
         case RESP_SERIAL_NUMBER:
             DecodeSerialNumber((EXTENDED_RESP_PACKET_T *)packet);

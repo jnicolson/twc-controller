@@ -16,6 +16,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #ifndef IO_H
 #define IO_H
 
+struct EXT_FIRMWARE_PAYLOAD_T;
 // TODO: something about this
 class TeslaControllerIO {
     public:
@@ -29,6 +30,7 @@ class TeslaControllerIO {
         virtual void writeActualCurrent(float) = 0;
         virtual void writeCharger(uint16_t, uint8_t) = 0;
         virtual void writeTotalConnectedChargers(uint8_t) = 0;
+        virtual void writeChargerFirmware(uint16_t, EXT_FIRMWARE_PAYLOAD_T*) = 0;
         virtual void writeState() = 0;
         virtual void stopCharging() = 0;
 };
