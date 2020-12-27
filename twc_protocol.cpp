@@ -325,10 +325,12 @@ void TeslaController::DecodeExtFirmwareVerison(RESP_PACKET_T *firmware_ver) {
     EXT_FIRMWARE_PAYLOAD_T *firmware_payload = (EXT_FIRMWARE_PAYLOAD_T *)firmware_ver->payload;
     
     TeslaConnector *c = GetConnector(firmware_ver->twcid);
-    memcpy(&c->firmware_version, &firmware_payload, 4);
 
-    controller_io_->writeChargerFirmware(firmware_ver->twcid, firmware_payload);
-    
+    if (memcmp(&c->firmware_version, &firmware_payload, 4) != 0) {
+        memcpy(&c->firmware_version, &firmware_payload, 4);
+        controller_io_->writeChargerFirmware(firmware_ver->twcid, firmware_payload);
+    }
+
     if (debug_) {
         Serial.printf("Decoded: ID: %04x, Firmware Ver: %d.%d.%d.%d\r\n", 
             firmware_ver->twcid, 
