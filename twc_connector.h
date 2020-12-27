@@ -29,8 +29,8 @@ class TeslaConnector {
         uint16_t twcid;
         uint8_t state;
 
+        uint8_t max_allowable_current;
     private:
-        uint8_t max_charge_rate_;
         uint8_t vin_[18];
         float actual_current_;
 };

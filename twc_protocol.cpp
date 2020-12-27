@@ -239,13 +239,15 @@ void TeslaController::SetCurrent(uint8_t current) {
 }
 
 void TeslaController::SendPresence(bool presence2) {
-   PRESENCE_T presence;
+   RESP_PACKET_T presence;
+   PRESENCE_PAYLOAD_T *presence_payload = (PRESENCE_PAYLOAD_T *)&presence.payload;
+
    presence.command = presence2 ? htons(PRIMARY_PRESENCE2) : htons(PRIMARY_PRESENCE);
    presence.twcid = twcid_;
-   presence.sign =  sign_;
-   presence.max_charge_rate = 0x0C80; // TODO: Repalce this with something not hard coded.
+   presence_payload->sign =  sign_;
+   presence_payload->max_allowable_current = 0x0C80; // TODO: Repalce this with something not hard coded.
    for (uint8_t i = 0; i <= 7; i++) {
-       presence.padding[i] = 0x00;
+       presence_payload->padding[i] = 0x00;
    }
    presence.checksum = CalculateChecksum((uint8_t*)&presence, sizeof(presence));
 
@@ -353,12 +355,14 @@ void TeslaController::DecodePowerState(EXTENDED_RESP_PACKET_T *power_state) {
     }
 }
 
-void TeslaController::DecodePrimaryPresence(PRESENCE_T *presence, uint8_t num) {
+void TeslaController::DecodePrimaryPresence(RESP_PACKET_T *presence, uint8_t num) {
+    PRESENCE_PAYLOAD_T *presence_payload = (PRESENCE_PAYLOAD_T *)presence->payload;
+
     if (debug_) {
         Serial.printf("Decoded: Primary Presence %d - ID: %02x, Sign: %02x\r\n", 
             num,
             presence->twcid, 
-            presence->sign
+            presence_payload->sign
         );
     }
 }
@@ -430,7 +434,8 @@ TeslaConnector * TeslaController::GetConnector(uint16_t twcid) {
     }
 }
 
-void TeslaController::DecodeSecondaryPresence(PRESENCE_T *presence) {
+void TeslaController::DecodeSecondaryPresence(RESP_PACKET_T *presence) {
+    PRESENCE_PAYLOAD_T *presence_payload = (PRESENCE_PAYLOAD_T *)presence->payload;
     bool alreadySeen = false;
 
     for (uint8_t i = 0; i < num_connected_chargers_; i++) {
@@ -441,7 +446,7 @@ void TeslaController::DecodeSecondaryPresence(PRESENCE_T *presence) {
 
     if (!alreadySeen) {
         Serial.printf("New charger seen - adding to controller. ID: %02x\r\n", presence->twcid);
-        TeslaConnector *connector = new TeslaConnector(presence->twcid, presence->max_charge_rate);
+        TeslaConnector *connector = new TeslaConnector(presence->twcid, presence_payload->max_allowable_current);
         chargers[num_connected_chargers_++] = connector;
     }
 }
@@ -518,13 +523,13 @@ void TeslaController::ProcessPacket(uint8_t *packet, size_t length) {
 
 	switch (command) {
         case PRIMARY_PRESENCE:
-            DecodePrimaryPresence((PRESENCE_T *)packet, 1);
+            DecodePrimaryPresence((RESP_PACKET_T *)packet, 1);
             break;
         case PRIMARY_PRESENCE2:
-            DecodePrimaryPresence((PRESENCE_T *)packet, 2);
+            DecodePrimaryPresence((RESP_PACKET_T *)packet, 2);
             break;
         case SECONDARY_PRESENCE:
-            DecodeSecondaryPresence((PRESENCE_T *)packet);
+            DecodeSecondaryPresence((RESP_PACKET_T *)packet);
             break;
         case SECONDARY_HEARTBEAT:
             DecodeSecondaryHeartbeat((S_HEARTBEAT_T *)packet);

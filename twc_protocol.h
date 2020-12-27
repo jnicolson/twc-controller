@@ -95,14 +95,6 @@ typedef struct EXTENDED_RESP_PACKET_T {
     uint8_t checksum;
 } EXTENDED_RESP_PACKET_T;
 
-typedef struct PRESENCE_T {
-    uint16_t    command;
-    uint16_t    twcid;
-    uint8_t     sign;
-    uint16_t    max_charge_rate;
-    uint8_t     padding[8];
-    uint8_t     checksum;
-} PRESENCE_T;
 
 typedef struct FIRMWARE_T {
     uint16_t command;
@@ -135,6 +127,12 @@ typedef struct P_HEARTBEAT_T {
     uint8_t checksum;
 } P_HEARTBEAT_T; 
 
+// Standard response packet payload
+typedef struct PRESENCE_PAYLOAD_T {
+    uint8_t     sign;
+    uint16_t    max_allowable_current;
+    uint8_t     padding[8];
+} PRESENCE_PAYLOAD_T;
 typedef struct POWERSTATUS_PAYLOAD_T {
     uint32_t total_kwh;
     uint16_t phase1_voltage;
@@ -183,9 +181,9 @@ class TeslaController {
         void Startup();
         void SendData(uint8_t *packet, size_t length);
         void DecodePowerState(EXTENDED_RESP_PACKET_T *power_state);
-        void DecodePrimaryPresence(PRESENCE_T *presence, uint8_t num);
+        void DecodePrimaryPresence(RESP_PACKET_T *presence, uint8_t num);
         void DecodePrimaryHeartbeat(P_HEARTBEAT_T *heartbeat);
-        void DecodeSecondaryPresence(PRESENCE_T *presence);
+        void DecodeSecondaryPresence(RESP_PACKET_T *presence);
         void DecodeSecondaryHeartbeat(S_HEARTBEAT_T *heartbeat);
         void DecodeVin(EXTENDED_RESP_PACKET_T *vin);
         void DecodeFirmwareVerison(RESP_PACKET_T *firmware_ver);

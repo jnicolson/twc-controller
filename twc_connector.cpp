@@ -15,9 +15,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "twc_connector.h"
 
-TeslaConnector::TeslaConnector(uint16_t twcid, uint8_t max_charge_rate) :
+TeslaConnector::TeslaConnector(uint16_t twcid, uint8_t max_allowable_current) :
     twcid(twcid),
-    max_charge_rate_(max_charge_rate)
+    max_allowable_current(max_allowable_current)
 {
     vin_[17] = '\0';
 }
