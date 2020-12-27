@@ -555,15 +555,9 @@ void TeslaController::UpdateTotalActualCurrent() {
 
 void TeslaController::DecodeVin(EXTENDED_RESP_PACKET_T *vin_data) {
     VIN_PAYLOAD_T *vin_payload = (VIN_PAYLOAD_T *)vin_data->payload;
-    TeslaConnector *t;
 
-    for (uint8_t i = 0; i < num_connected_chargers_; i++) {
-        if (chargers[i]->twcid == vin_data->twcid) {
-            t = chargers[i];
-        }
-    }
-
-    uint8_t *vin = t->GetVin();
+    TeslaConnector *c = GetConnector(vin_data->twcid);
+    uint8_t *vin = c->GetVin();
 
     switch (ntohs(vin_data->command)) {
         case RESP_VIN_FIRST:
