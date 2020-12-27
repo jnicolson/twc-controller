@@ -494,6 +494,7 @@ void TeslaController::DecodeSecondaryHeartbeat(S_HEARTBEAT_T *heartbeat) {
     if (newCurrent != c->GetActualCurrent()) {
         c->SetActualCurrent(newCurrent);
         UpdateTotalActualCurrent();
+        controller_io_->writeChargerActualCurrent(heartbeat->src_twcid, newCurrent);
     }
 }
 
