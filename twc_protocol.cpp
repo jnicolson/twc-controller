@@ -345,13 +345,13 @@ void TeslaController::DecodePowerState(EXTENDED_RESP_PACKET_T *power_state) {
     if (debug_) {
         Serial.printf("Decoded: Power State ID: %04x, Total kWh %d, Phase Voltages: %d, %d, %d, Phase Currents: %d, %d, %d\r\n", 
         power_state->twcid, 
-        htonl(power_state_payload->total_kwh), 
-        htons(power_state_payload->phase1_voltage), 
-        htons(power_state_payload->phase2_voltage), 
-        htons(power_state_payload->phase3_voltage),
-        htons(power_state_payload->phase1_current), 
-        htons(power_state_payload->phase2_current), 
-        htons(power_state_payload->phase3_current));
+        ntohl(power_state_payload->total_kwh), 
+        ntohs(power_state_payload->phase1_voltage), 
+        ntohs(power_state_payload->phase2_voltage), 
+        ntohs(power_state_payload->phase3_voltage),
+        power_state_payload->phase1_current, 
+        power_state_payload->phase2_current, 
+        power_state_payload->phase3_current);
     }
 }
 
@@ -373,7 +373,7 @@ void TeslaController::DecodePrimaryHeartbeat(P_HEARTBEAT_T *heartbeat) {
             heartbeat->src_twcid, 
             heartbeat->dst_twcid,
             heartbeat->state,
-            htons(heartbeat->max_current),
+            ntohs(heartbeat->max_current),
             heartbeat->plug_inserted
         );
     }
@@ -400,8 +400,8 @@ void TeslaController::DecodeSecondaryHeartbeat(S_HEARTBEAT_T *heartbeat) {
             heartbeat->src_twcid,
             heartbeat->dst_twcid,
             heartbeat->state,
-            htons(heartbeat->max_current),
-            htons(heartbeat->actual_current)
+            ntohs(heartbeat->max_current),
+            ntohs(heartbeat->actual_current)
         );
     }
 
@@ -419,7 +419,7 @@ void TeslaController::DecodeSecondaryHeartbeat(S_HEARTBEAT_T *heartbeat) {
 
     // Check whether the current the secondary is charging at has changed.  If it has
     // force an udpate of the total current being used and update the internal state
-    float newCurrent = htons(heartbeat->actual_current)/100;
+    float newCurrent = ntohs(heartbeat->actual_current)/100;
     if (newCurrent != c->GetActualCurrent()) {
         c->SetActualCurrent(newCurrent);
         UpdateTotalActualCurrent();
@@ -475,7 +475,7 @@ void TeslaController::DecodeVin(EXTENDED_RESP_PACKET_T *vin_data) {
 
     uint8_t *vin = t->GetVin();
 
-    switch (htons(vin_data->command)) {
+    switch (ntohs(vin_data->command)) {
         case RESP_VIN_FIRST:
             if (debug_) { Serial.printf("Decoded: ID: %04x, VIN First: ", vin_data->twcid); }
             memcpy(&vin[0], &vin_payload->vin, sizeof(vin_payload->vin));
