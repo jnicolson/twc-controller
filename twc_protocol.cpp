@@ -221,6 +221,10 @@ void TeslaController::GetFirmwareVer(uint16_t secondary_twcid) {
     SendCommand(GET_FIRMWARE_VER, secondary_twcid);
 }
 
+void TeslaController::GetPowerStatus(uint16_t secondary_twcid) {
+    SendCommand(GET_FIRMWARE_VER, secondary_twcid);
+};
+
 void TeslaController::GetVin(uint16_t secondary_twcid) {
     SendCommand(GET_VIN_FIRST, secondary_twcid);
     SendCommand(GET_VIN_MIDDLE, secondary_twcid);
@@ -360,13 +364,57 @@ void TeslaController::DecodeSerialNumber(EXTENDED_RESP_PACKET_T *serial) {
         }
         Serial.println();
     }
-
 }
 
 void TeslaController::DecodePowerState(EXTENDED_RESP_PACKET_T *power_state) {
     POWERSTATUS_PAYLOAD_T *power_state_payload = (POWERSTATUS_PAYLOAD_T *)power_state->payload;
+
+    TeslaConnector *c = GetConnector(power_state->twcid);
+
+    uint32_t total_kwh = ntohl(power_state_payload->total_kwh);
+    if (total_kwh != c->total_kwh) {
+        c->total_kwh = total_kwh;
+        controller_io_->writeChargerTotalKwh(power_state->twcid, total_kwh);
+    };
+
+    uint16_t voltage = ntohs(power_state_payload->phase1_voltage);
+    if (voltage != c->phase1_voltage) {
+        c->phase1_voltage = voltage;
+        controller_io_->writeChargerVoltage(power_state->twcid, voltage, 1);
+    };
+
+    voltage = ntohs(power_state_payload->phase2_voltage);
+    if (voltage != c->phase2_voltage) {
+        c->phase2_voltage = voltage;
+        controller_io_->writeChargerVoltage(power_state->twcid, voltage, 2);
+    };
+
+    voltage = ntohs(power_state_payload->phase3_voltage);
+    if (voltage != c->phase3_voltage) {
+        c->phase3_voltage = voltage;
+        controller_io_->writeChargerVoltage(power_state->twcid, voltage, 3);
+    };
+
+    uint8_t current = power_state_payload->phase1_current/2;
+    if (current != c->phase1_current) {
+        c->phase1_current = current;
+        controller_io_->writeChargerCurrent(power_state->twcid, current, 1);
+    };
+
+    current = power_state_payload->phase2_current/2;
+    if (current != c->phase2_current) {
+        c->phase2_current = current;
+        controller_io_->writeChargerCurrent(power_state->twcid, current, 2);
+    };
+
+    current = power_state_payload->phase3_current/2;
+    if (current != c->phase3_current) {
+        c->phase3_current = current;
+        controller_io_->writeChargerCurrent(power_state->twcid, current, 3);
+    };
+
     if (debug_) {
-        Serial.printf("Decoded: Power State ID: %04x, Total kWh %d, Phase Voltages: %d, %d, %d, Phase Currents: %d, %d, %d\r\n", 
+        Serial.printf("Decoded: ID: %04x, Power State Total kWh %d, Phase Voltages: %d, %d, %d, Phase Currents: %d, %d, %d\r\n", 
         power_state->twcid, 
         ntohl(power_state_payload->total_kwh), 
         ntohs(power_state_payload->phase1_voltage), 
@@ -481,6 +529,20 @@ void TeslaController::DecodeSecondaryPresence(RESP_PACKET_T *presence) {
 
         controller_io_->writeCharger(connector->twcid, connector->max_allowable_current);
         controller_io_->writeTotalConnectedChargers(num_connected_chargers_);
+        
+        // Write 0's to MQTT for each topic which has 0 as a valid value.  This is because
+        // we compare the old and new values and by default everything is 0 so it never writes
+        // anything.  This way we start at 0 and immediately update to the real value if there is
+        // one, or stay at 0 (which is correct) if there isn't.
+        controller_io_->writeChargerVoltage(presence->twcid, 0, 1);
+        controller_io_->writeChargerVoltage(presence->twcid, 0, 2);
+        controller_io_->writeChargerVoltage(presence->twcid, 0, 3);
+
+        controller_io_->writeChargerCurrent(presence->twcid, 0, 1);
+        controller_io_->writeChargerCurrent(presence->twcid, 0, 2);
+        controller_io_->writeChargerCurrent(presence->twcid, 0, 3);
+
+        controller_io_->writeChargerActualCurrent(presence->twcid, 0);
     }
 }
 

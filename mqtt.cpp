@@ -154,12 +154,53 @@ void TeslaMqttIO::writeCharger(uint16_t twcid, uint8_t max_allowable_current) {
   mqttClient_->publish(topic, (uint8_t *)buffer, strlen(buffer), 2, true);
 }
 
+void TeslaMqttIO::writeChargerTotalKwh(uint16_t twcid, uint32_t total_kwh) {
+  char topic[50];
+  snprintf(topic, 50, "twcController/twcs/%04x/total_kwh_delivered", twcid);
+
+  char buffer[10];
+  snprintf(buffer, 10, "%d", total_kwh);
+
+  mqttClient_->publish(topic, (uint8_t *)buffer, strlen(buffer), 2, true);
+}
+
 void TeslaMqttIO::writeChargerSerial(uint16_t twcid, uint8_t* serial, size_t length) {
   char topic[50];
   snprintf(topic, 50, "twcController/twcs/%04x/serial", twcid);
 
   mqttClient_->publish(topic, serial, length, 2, true);
 } 
+
+void TeslaMqttIO::writeChargerVoltage(uint16_t twcid, uint16_t voltage, uint8_t phase) {
+  if (phase > 3) {
+    Serial.println("Phase Should be 3 or less!");
+    return;
+  }
+
+  char topic[50];
+  snprintf(topic, 50, "twcController/twcs/%04x/phase_%d_voltage", twcid, phase);
+
+  char buffer[10];
+  snprintf(buffer, 10, "%d", voltage);
+
+  mqttClient_->publish(topic, (uint8_t *)buffer, strlen(buffer), 2, true);
+}
+
+void TeslaMqttIO::writeChargerCurrent(uint16_t twcid, uint8_t current, uint8_t phase) {
+  if (phase > 3) {
+    Serial.println("Phase should be 3 or less");
+    return;
+  }
+
+  char topic[50];
+  snprintf(topic, 50, "twcController/twcs/%04x/phase_%d_current", twcid, phase);
+
+  char buffer[10];
+  snprintf(buffer, 10, "%d", current);
+
+  mqttClient_->publish(topic, (uint8_t *)buffer, strlen(buffer), 2, true);
+};
+
 void TeslaMqttIO::writeTotalConnectedChargers(uint8_t connected_chargers) {
   char buffer[10];
   snprintf(buffer, 10, "%d", connected_chargers);
@@ -177,6 +218,20 @@ void TeslaMqttIO::writeChargerFirmware(uint16_t twcid, EXT_FIRMWARE_PAYLOAD_T *f
     firmware_payload->revision, 
     firmware_payload->extended
   );
+
+  mqttClient_->publish(topic, (uint8_t *)buffer, strlen(buffer), 2, true);
+};
+
+void TeslaMqttIO::writeChargerActualCurrent(uint16_t twcid, uint16_t current) {
+  char topic[50];
+  snprintf(topic, 50, "twcController/twcs/%04x/actual_current", twcid);
+
+  char buffer[10];
+  snprintf(buffer, 10, "%d", current);
+
+  mqttClient_->publish(topic, (uint8_t *)buffer, strlen(buffer), 2, true);
+}
+
 void TeslaMqttIO::writeState() {
   //mqttClient.publish("topic", 2, true, payload)
 
@@ -191,14 +246,6 @@ void TeslaMqttIO::writeState() {
   twc/<twcid>/model
   twc/<twcid>/connected_vin
   twc/<twcid>/plug_state
-  twc/<twcid>/total_kwh_delivered
-  twc/<twcid>/phase_1_voltage
-  twc/<twcid>/pahse_2_voltage
-  twc/<twcid>/phase_3_voltage
-  twc/<twcid>/phase_1_current
-  twc/<twcid>/pahse_2_current
-  twc/<twcid>/phase_3_current
-  twc/<twcid>/actual_current
 
   */
 }

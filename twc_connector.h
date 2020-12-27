@@ -31,6 +31,15 @@ class TeslaConnector {
         uint8_t firmware_version[4];
         
         uint8_t serial_number[11];
+        
+        uint32_t total_kwh;
+        uint16_t phase1_voltage;
+        uint16_t phase2_voltage;
+        uint16_t phase3_voltage;
+        
+        uint8_t phase1_current;
+        uint8_t phase2_current;
+        uint8_t phase3_current;
 
         uint8_t max_allowable_current;
     private:

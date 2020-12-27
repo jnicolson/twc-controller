@@ -167,6 +167,7 @@ class TeslaController {
         void GetVIN();
         void GetModelNo();
         void GetPlugState();
+        void GetPowerStatus(uint16_t secondary_twcid);
         void GetSerial(uint16_t secondary_twcid);
         void GetFirmwareVer(uint16_t secondary_twcid);
         void GetVin(uint16_t secondary_twcid);

@@ -35,8 +35,12 @@ class TeslaMqttIO : public TeslaControllerIO {
         void writeRaw(uint8_t *data, size_t length);
         void writeRawPacket(uint8_t *data, size_t length);
         void writeCharger(uint16_t twcid, uint8_t max_charge_rate);
+        void writeChargerTotalKwh(uint16_t twcid, uint32_t total_kwh);
         void writeChargerSerial(uint16_t twcid, uint8_t* serial, size_t length); 
+        void writeChargerVoltage(uint16_t twcid, uint16_t voltage, uint8_t phase);
+        void writeChargerCurrent(uint16_t twcid, uint8_t current, uint8_t phase);
         void writeChargerFirmware(uint16_t twcid, EXT_FIRMWARE_PAYLOAD_T* firmware_payload);
+        void writeChargerActualCurrent(uint16_t twcid, uint16_t current);
         void writeTotalConnectedChargers(uint8_t connected_chargers);
         void stopCharging();
         void writeState();
