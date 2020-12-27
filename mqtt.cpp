@@ -236,16 +236,13 @@ void TeslaMqttIO::writeState() {
   //mqttClient.publish("topic", 2, true, payload)
 
   /*
-
   twc/total/connected_cars
   twc/total/current_draw
   twc/total/phase_1_current
   twc/total/phase_2_current
   twc/total/phase_3_current
 
-  twc/<twcid>/model
   twc/<twcid>/connected_vin
   twc/<twcid>/plug_state
-
   */
 }

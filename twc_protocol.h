@@ -123,6 +123,8 @@ typedef struct PRESENCE_PAYLOAD_T {
     uint16_t    max_allowable_current;
     uint8_t     padding[8];
 } PRESENCE_PAYLOAD_T;
+
+// Extended response packet payload
 typedef struct POWERSTATUS_PAYLOAD_T {
     uint32_t total_kwh;
     uint16_t phase1_voltage;
@@ -134,20 +136,18 @@ typedef struct POWERSTATUS_PAYLOAD_T {
     uint8_t padding[2];
 } POWERSTATUS_PAYLOAD_T;
 
+// Extended response packet payload
 typedef struct VIN_PAYLOAD_T {
     uint8_t vin[7];
     uint8_t padding[8];
 } VIN_PAYLOAD_T;
 
+// Extended response packet payload
 typedef struct SERIAL_PAYLOAD_T {
     uint8_t serial[11];
     uint8_t padding[4];
 } SERIAL_PAYLOAD_T;
 
-typedef struct PLUGSTATE_PAYLOAD_T {
-    uint8_t plug_state;
-    uint8_t padding[10];
-} PLUGSTATE_PAYLOAD_T;
 // Standard response packet Payload
 typedef struct EXT_FIRMWARE_PAYLOAD_T {
     uint8_t major;
@@ -162,12 +162,8 @@ class TeslaController {
         TeslaController(HardwareSerial& serial, TeslaControllerIO& io);
 
         void Begin();
-        void GetPowerStatus();
-        void GetFirmware();        
-        void GetVIN();
-        void GetModelNo();
-        void GetPlugState();
         void GetPowerStatus(uint16_t secondary_twcid);
+        void GetFirmware(uint16_t secondary_twcid);        
         void GetSerial(uint16_t secondary_twcid);
         void GetFirmwareVer(uint16_t secondary_twcid);
         void GetVin(uint16_t secondary_twcid);

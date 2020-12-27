@@ -157,7 +157,6 @@ void TeslaController::Handle() {
                     message_started_ = true;
                     receive_index_ = 0;
                 }
-
                 break;
             
             case SLIP_ESC:
@@ -195,7 +194,6 @@ void TeslaController::Handle() {
                     receive_buffer_[receive_index_++] = receivedChar;
                 } // else disgard - probably corruption or started receiving
                 // in the middle of a message
-
         }
     }
 }
@@ -211,10 +209,6 @@ void TeslaController::Debug(bool enabled) {
 
 void TeslaController::GetSerial(uint16_t secondary_twcid) {
     SendCommand(GET_SERIAL_NUMBER, secondary_twcid);
-}
-
-void TeslaController::GetModelNo() {
-    SendCommand((uint16_t)GET_MODEL_NUMBER, (uint16_t)0x0000);
 }
 
 void TeslaController::GetFirmwareVer(uint16_t secondary_twcid) {
@@ -585,6 +579,7 @@ void TeslaController::DecodeVin(EXTENDED_RESP_PACKET_T *vin_data) {
             memcpy(&vin[14], &vin_payload->vin, 3);
             break;
     }
+
     if (debug_) {
         for (uint8_t i = 0; i < strlen((const char*)vin_payload->vin); i++) { 
             Serial.printf("%c", vin_payload->vin[i]); 
@@ -660,7 +655,6 @@ void TeslaController::ProcessPacket(uint8_t *packet, size_t length) {
                 Serial.printf("%02x", packet[i]);
             }
             Serial.println();
-
             break;
     }
 }
