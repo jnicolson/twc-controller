@@ -250,11 +250,20 @@ void TeslaMqttIO::writeChargerConnectedVin(uint16_t twcid, uint8_t* vin) {
   mqttClient_->publish(topic, vin, strlen((const char*)vin), 2, true);
 }
 
+void TeslaMqttIO::writeChargerState(uint16_t twcid, uint8_t state) {
+  char topic[50];
+  snprintf(topic, 50, "twcController/twcs/%04x/state", twcid);
+
+  char buffer[10];
+  snprintf(buffer, 10, "%d", state);
+
+  mqttClient_->publish(topic, (uint8_t *)buffer, strlen(buffer), 2, true);
+}
+
 void TeslaMqttIO::writeState() {
   //mqttClient.publish("topic", 2, true, payload)
 
   /*
   twc/total/connected_cars
-  twc/<twcid>/plug_state
   */
 }

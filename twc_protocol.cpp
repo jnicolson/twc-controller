@@ -484,8 +484,11 @@ void TeslaController::DecodeSecondaryHeartbeat(S_HEARTBEAT_T *heartbeat) {
         if (heartbeat->state == 4) {
             current_changed_ = true;
         }
+
+        c->state = heartbeat->state;
+        controller_io_->writeChargerState(heartbeat->src_twcid, c->state);
     }
-    c->state = heartbeat->state;
+    
 
     // Check whether the current the secondary is charging at has changed.  If it has
     // force an udpate of the total current being used and update the internal state
@@ -545,6 +548,8 @@ void TeslaController::DecodeSecondaryPresence(RESP_PACKET_T *presence) {
         controller_io_->writeChargerActualCurrent(presence->twcid, 0);
 
         controller_io_->writeChargerConnectedVin(presence->twcid, (uint8_t *)"0");
+
+        controller_io_->writeChargerState(presence->twcid, 0);
     }
 }
 
