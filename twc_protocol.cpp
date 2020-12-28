@@ -348,7 +348,7 @@ void TeslaController::DecodeSerialNumber(EXTENDED_RESP_PACKET_T *serial) {
     TeslaConnector *c = GetConnector(serial->twcid);
 
     if (strcmp((const char*)c->serial_number, (const char*)serial_payload->serial) != 0) {
-        memcpy(&c->serial_number, &serial_payload->serial, strlen((const char*)serial_payload->serial));
+        strcpy((char *)&c->serial_number, (const char*)&serial_payload->serial);
         controller_io_->writeChargerSerial(serial->twcid, c->serial_number, strlen((const char*)serial_payload->serial));
     }
     
@@ -543,6 +543,8 @@ void TeslaController::DecodeSecondaryPresence(RESP_PACKET_T *presence) {
         controller_io_->writeChargerCurrent(presence->twcid, 0, 3);
 
         controller_io_->writeChargerActualCurrent(presence->twcid, 0);
+
+        controller_io_->writeChargerConnectedVin(presence->twcid, (uint8_t *)"0");
     }
 }
 
@@ -602,9 +604,14 @@ void TeslaController::DecodeVin(EXTENDED_RESP_PACKET_T *vin_data) {
 
     if (changed & (strlen((const char*)vin) == 17)) {
         controller_io_->writeChargerConnectedVin(vin_data->twcid, vin);
+    } else if (changed & strlen((const char*)vin) == 0) {
+        controller_io_->writeChargerConnectedVin(vin_data->twcid, (uint8_t *)"0");
     }
 
     if (debug_) {
+        if (strlen((const char*)vin_payload->vin) == 0) {
+            Serial.print("No Car Connected");
+        }
         for (uint8_t i = 0; i < strlen((const char*)vin_payload->vin); i++) { 
             Serial.printf("%c", vin_payload->vin[i]); 
         };
