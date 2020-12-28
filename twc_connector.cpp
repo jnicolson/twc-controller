@@ -33,3 +33,20 @@ void TeslaConnector::SetActualCurrent(float current) {
 float TeslaConnector::GetActualCurrent() {
     return actual_current_;
 }
+
+uint8_t TeslaConnector::GetPhaseCurrent(uint8_t phase) {
+    switch (phase) {
+        case 1:
+            return phase1_current;
+            break;
+        case 2:
+            return phase2_current;
+            break;
+        case 3:
+            return phase3_current;
+            break;
+        default:
+            Serial.println("Request for phase >3 - ignored");
+            return 0;
+    }
+}

@@ -57,7 +57,19 @@ MQTT is the main input/output for twc-controller.  The topics it listens to are:
 * twcController/debugEnabled - send a 1 to this to enable serial debug
 
 And it writes to:
-* twcController/totalActualCurrent - Actual current in use by all TWCs
+#### Totals
+* twcController/total/current_draw - Actual current in use by all TWCs
+* twcController/total/connected_chargers - Number of TWCs connected
+* twcController/phase_[123]_current - Total current on each phase for all TWCs
+
+#### Per TWC
+* max_allowable_current - Maximum current the TWC is rated for
+* phase_[123]_voltage - Voltage on each phase
+* phase_[123]_current - Current draw on each phase
+* actual_current - Total current
+* serial - Charger serial number
+* total_kwh_delivered - Total kWh delivered by the TWC since manufacture
+* firmware_version - Firmware running on the TWC
 
 There are also some topics used for debug.  Topics listened to:
 * twcController/debug/packetSend - send a raw packet (needs the checksum, but without the SLIP_END byte on each end)

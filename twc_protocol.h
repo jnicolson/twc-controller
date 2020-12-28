@@ -188,6 +188,7 @@ class TeslaController {
         uint8_t ChargersConnected();
         TeslaConnector * GetConnector(uint16_t twcid);
         void UpdateTotalActualCurrent();
+        void UpdateTotalPhaseCurrent(uint8_t phase);
 
     private:
         uint8_t CalculateChecksum(uint8_t *buffer, size_t length);

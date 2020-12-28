@@ -26,6 +26,8 @@ class TeslaConnector {
         uint8_t* GetVin();
         void SetActualCurrent(float current);
         float GetActualCurrent();
+        uint8_t GetPhaseCurrent(uint8_t phase);
+        
         uint16_t twcid;
         uint8_t state;
         uint8_t firmware_version[4];

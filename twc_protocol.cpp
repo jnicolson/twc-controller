@@ -395,18 +395,21 @@ void TeslaController::DecodePowerState(EXTENDED_RESP_PACKET_T *power_state) {
     if (current != c->phase1_current) {
         c->phase1_current = current;
         controller_io_->writeChargerCurrent(power_state->twcid, current, 1);
+        UpdateTotalPhaseCurrent(1);
     };
 
     current = power_state_payload->phase2_current/2;
     if (current != c->phase2_current) {
         c->phase2_current = current;
         controller_io_->writeChargerCurrent(power_state->twcid, current, 2);
+        UpdateTotalPhaseCurrent(2);
     };
 
     current = power_state_payload->phase3_current/2;
     if (current != c->phase3_current) {
         c->phase3_current = current;
         controller_io_->writeChargerCurrent(power_state->twcid, current, 3);
+        UpdateTotalPhaseCurrent(3);
     };
 
     if (debug_) {
@@ -554,6 +557,16 @@ void TeslaController::UpdateTotalActualCurrent() {
     }
     controller_io_->writeActualCurrent(total_current_);
 }
+
+void TeslaController::UpdateTotalPhaseCurrent(uint8_t phase) {
+    uint8_t phase_current_ = 0;
+
+    for (uint8_t i = 0; i < num_connected_chargers_; i++) {
+        phase_current_ += chargers[i]->GetPhaseCurrent(phase);
+    }
+
+    controller_io_->writeChargerTotalPhaseCurrent(phase_current_, phase);
+};
 
 void TeslaController::DecodeVin(EXTENDED_RESP_PACKET_T *vin_data) {
     VIN_PAYLOAD_T *vin_payload = (VIN_PAYLOAD_T *)vin_data->payload;
