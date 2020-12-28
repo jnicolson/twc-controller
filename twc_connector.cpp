@@ -19,7 +19,10 @@ TeslaConnector::TeslaConnector(uint16_t twcid, uint8_t max_allowable_current) :
     twcid(twcid),
     max_allowable_current(max_allowable_current)
 {
-    vin_[17] = '\0';
+    // Fill array with null.  That way when the VIN
+    // has been fully populated (by 3 different calls),
+    // strlen(vin_) will return 17.
+    memset(vin_, '\0', sizeof(uint8_t) * 18);
 }
 
 uint8_t * TeslaConnector::GetVin() {

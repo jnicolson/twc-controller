@@ -574,19 +574,34 @@ void TeslaController::DecodeVin(EXTENDED_RESP_PACKET_T *vin_data) {
     TeslaConnector *c = GetConnector(vin_data->twcid);
     uint8_t *vin = c->GetVin();
 
+    bool changed = false;
+
     switch (ntohs(vin_data->command)) {
         case RESP_VIN_FIRST:
             if (debug_) { Serial.printf("Decoded: ID: %04x, VIN First: ", vin_data->twcid); }
-            memcpy(&vin[0], &vin_payload->vin, sizeof(vin_payload->vin));
+            if (memcmp(&vin[0], &vin_payload->vin, sizeof(vin_payload->vin)) != 0) {
+                changed = true;
+                memcpy(&vin[0], &vin_payload->vin, sizeof(vin_payload->vin));
+            }
             break;
         case RESP_VIN_MIDDLE:
             if (debug_) { Serial.printf("Decoded: ID: %04x, VIN Middle: ", vin_data->twcid); }
-            memcpy(&vin[7], &vin_payload->vin, sizeof(vin_payload->vin));
+            if (memcmp(&vin[7], &vin_payload->vin, sizeof(vin_payload->vin)) != 0) {
+                changed = true;
+                memcpy(&vin[7], &vin_payload->vin, sizeof(vin_payload->vin));
+            }
             break;
         case RESP_VIN_LAST:
             if (debug_) { Serial.printf("Decoded: ID: %04x, VIN Last: ", vin_data->twcid); }
-            memcpy(&vin[14], &vin_payload->vin, 3);
+            if (memcmp(&vin[14], &vin_payload->vin, 3) != 0) {
+                changed = true;   
+                memcpy(&vin[14], &vin_payload->vin, 3);
+            }
             break;
+    }
+
+    if (changed & (strlen((const char*)vin) == 17)) {
+        controller_io_->writeChargerConnectedVin(vin_data->twcid, vin);
     }
 
     if (debug_) {

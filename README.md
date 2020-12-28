@@ -70,6 +70,7 @@ And it writes to:
 * serial - Charger serial number
 * total_kwh_delivered - Total kWh delivered by the TWC since manufacture
 * firmware_version - Firmware running on the TWC
+* connected_vin - VIN of car connected to TWC (likely only going to work for a TWC set to Tesla mode, with a Tesla plugged in)
 
 There are also some topics used for debug.  Topics listened to:
 * twcController/debug/packetSend - send a raw packet (needs the checksum, but without the SLIP_END byte on each end)

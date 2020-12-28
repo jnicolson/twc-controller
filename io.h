@@ -37,6 +37,7 @@ class TeslaControllerIO {
         virtual void writeChargerFirmware(uint16_t, EXT_FIRMWARE_PAYLOAD_T*) = 0;
         virtual void writeChargerActualCurrent(uint16_t, uint8_t) = 0;
         virtual void writeChargerTotalPhaseCurrent(uint8_t, uint8_t) = 0;
+        virtual void writeChargerConnectedVin(uint16_t, uint8_t*) = 0;
         virtual void writeState() = 0;
         virtual void stopCharging() = 0;
 };
