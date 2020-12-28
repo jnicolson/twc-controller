@@ -486,6 +486,7 @@ void TeslaController::DecodeSecondaryHeartbeat(S_HEARTBEAT_T *heartbeat) {
         }
 
         c->state = heartbeat->state;
+        UpdateTotalConnectedCars();
         controller_io_->writeChargerState(heartbeat->src_twcid, c->state);
     }
     
@@ -498,6 +499,18 @@ void TeslaController::DecodeSecondaryHeartbeat(S_HEARTBEAT_T *heartbeat) {
         UpdateTotalActualCurrent();
         controller_io_->writeChargerActualCurrent(heartbeat->src_twcid, newCurrent);
     }
+}
+
+void TeslaController::UpdateTotalConnectedCars() {
+    uint8_t connected_cars = 0;
+
+    for (uint8_t i = 0; i < num_connected_chargers_; i++) {
+        if (chargers[i]->state != 0) {
+            connected_cars++;
+        }
+    }
+
+    controller_io_->writeTotalConnectedCars(connected_cars);
 }
 
 TeslaConnector * TeslaController::GetConnector(uint16_t twcid) {
@@ -550,6 +563,8 @@ void TeslaController::DecodeSecondaryPresence(RESP_PACKET_T *presence) {
         controller_io_->writeChargerConnectedVin(presence->twcid, (uint8_t *)"0");
 
         controller_io_->writeChargerState(presence->twcid, 0);
+
+        controller_io_->writeTotalConnectedCars(0);
     }
 }
 

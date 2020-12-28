@@ -260,6 +260,12 @@ void TeslaMqttIO::writeChargerState(uint16_t twcid, uint8_t state) {
   mqttClient_->publish(topic, (uint8_t *)buffer, strlen(buffer), 2, true);
 }
 
+void TeslaMqttIO::writeTotalConnectedCars(uint8_t connected_cars) {
+  char buffer[10];
+  snprintf(buffer, 10, "%d", connected_cars);
+  mqttClient_->publish("twcController/total/connected_cars", (uint8_t *)buffer, strlen(buffer), 2, true);
+}
+
 void TeslaMqttIO::writeState() {
   //mqttClient.publish("topic", 2, true, payload)
 

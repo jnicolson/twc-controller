@@ -60,7 +60,8 @@ And it writes to:
 #### Totals
 * twcController/total/current_draw - Actual current in use by all TWCs
 * twcController/total/connected_chargers - Number of TWCs connected
-* twcController/phase_[123]_current - Total current on each phase for all TWCs
+* twcController/total/phase_[123]_current - Total current on each phase for all TWCs
+* twcController/total/connected_cars - Number of cars connected
 
 #### Per TWC
 * max_allowable_current - Maximum current the TWC is rated for
@@ -71,6 +72,7 @@ And it writes to:
 * total_kwh_delivered - Total kWh delivered by the TWC since manufacture
 * firmware_version - Firmware running on the TWC
 * connected_vin - VIN of car connected to TWC (likely only going to work for a TWC set to Tesla mode, with a Tesla plugged in)
+* state - State frame from heartbeat (i.e. 0 = Ready, 1 = Charging, etc)
 
 There are also some topics used for debug.  Topics listened to:
 * twcController/debug/packetSend - send a raw packet (needs the checksum, but without the SLIP_END byte on each end)
