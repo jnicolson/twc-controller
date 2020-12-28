@@ -222,7 +222,7 @@ void TeslaMqttIO::writeChargerFirmware(uint16_t twcid, EXT_FIRMWARE_PAYLOAD_T *f
   mqttClient_->publish(topic, (uint8_t *)buffer, strlen(buffer), 2, true);
 };
 
-void TeslaMqttIO::writeChargerActualCurrent(uint16_t twcid, uint16_t current) {
+void TeslaMqttIO::writeChargerActualCurrent(uint16_t twcid, uint8_t current) {
   char topic[50];
   snprintf(topic, 50, "twcController/twcs/%04x/actual_current", twcid);
 
