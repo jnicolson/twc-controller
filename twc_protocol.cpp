@@ -493,7 +493,7 @@ void TeslaController::DecodeSecondaryHeartbeat(S_HEARTBEAT_T *heartbeat) {
 
     // Check whether the current the secondary is charging at has changed.  If it has
     // force an udpate of the total current being used and update the internal state
-    float newCurrent = ntohs(heartbeat->actual_current)/100;
+    uint8_t newCurrent = ntohs(heartbeat->actual_current)/100;
     if (newCurrent != c->GetActualCurrent()) {
         c->SetActualCurrent(newCurrent);
         UpdateTotalActualCurrent();

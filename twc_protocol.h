@@ -216,7 +216,7 @@ class TeslaController {
         uint8_t max_current_;
         bool current_changed_;
         bool debug_;
-        float total_current_;
+        uint8_t total_current_;
         TeslaConnector* chargers[3];
 };
 

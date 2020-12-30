@@ -29,11 +29,11 @@ uint8_t * TeslaConnector::GetVin() {
     return vin_;
 }
 
-void TeslaConnector::SetActualCurrent(float current) {
+void TeslaConnector::SetActualCurrent(uint8_t current) {
     actual_current_ = current;
 }
 
-float TeslaConnector::GetActualCurrent() {
+uint8_t TeslaConnector::GetActualCurrent() {
     return actual_current_;
 }
 
