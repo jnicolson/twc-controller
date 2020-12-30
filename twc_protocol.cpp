@@ -33,7 +33,7 @@ TeslaController::TeslaController(HardwareSerial& serial, TeslaControllerIO& io) 
 }
 
 void TeslaController::Begin() {
-    Serial.print("Starting Tesla Controller... ");
+    Serial.print(F("Starting Tesla Controller... "));
     pinMode(RE_PIN, OUTPUT);
     serial_->begin(9600, SERIAL_8N1, RO_PIN, DI_PIN);
     digitalWrite(RE_PIN, LOW);
@@ -46,14 +46,14 @@ void TeslaController::Begin() {
 
     receive_index_ = 0;
 
-    Serial.println("Done!");
+    Serial.println(F("Done!"));
 }
 
 // This method is called in arduino setup() to start the main controller loop (a FreeRTOS task)
 void TeslaController::Startup() {
-    Serial.print("Starting up Tesla Controller task as primary... ");
+    Serial.print(F("Starting up Tesla Controller task as primary... "));
     xTaskCreate(this->startupTask_, "TeslaControllerTask", 2048, this, 1, NULL);
-    Serial.println("Done!");
+    Serial.println(F("Done!"));
 }
 
 // This is a static method which is just used as the FreeRTOS task which sends
@@ -128,7 +128,7 @@ void TeslaController::Handle() {
         serial_->readBytes(&receivedChar, 1);
 
         if (receive_index_ > MAX_PACKET_LENGTH-1) {
-            Serial.println("Packet length exceeded");
+            Serial.println(F("Packet length exceeded"));
             receive_index_ = 0;
             return;
         }
@@ -170,7 +170,7 @@ void TeslaController::Handle() {
                 // the timeout was hit and therefore this should be discarded (dropping)
                 // the whole packet
                 if (serial_->readBytes(&receivedChar, 1) != 1) {
-                    Serial.println("Error while receiving packet data for a packet");
+                    Serial.println(F("Error while receiving packet data for a packet"));
                     return;
                 }
                 
@@ -200,9 +200,9 @@ void TeslaController::Handle() {
 
 void TeslaController::Debug(bool enabled) {
     if (enabled) {
-        Serial.println("Enabling Debug");
+        Serial.println(F("Enabling Debug"));
     } else {
-        Serial.println("Disabling Debug");
+        Serial.println(F("Disabling Debug"));
     }
     debug_ = enabled;
 }
@@ -227,7 +227,7 @@ void TeslaController::GetVin(uint16_t secondary_twcid) {
 
 void TeslaController::SetCurrent(uint8_t current) {
     if (available_current_ != current) {
-        Serial.printf("Received current change message, new current %d\r\n", current);
+        Serial.printf_P(PSTR("Received current change message, new current %d\r\n"), current);
         current_changed_ = true;
     }
 
@@ -332,7 +332,7 @@ void TeslaController::DecodeExtFirmwareVerison(RESP_PACKET_T *firmware_ver) {
     }
 
     if (debug_) {
-        Serial.printf("Decoded: ID: %04x, Firmware Ver: %d.%d.%d.%d\r\n", 
+        Serial.printf_P(PSTR("Decoded: ID: %04x, Firmware Ver: %d.%d.%d.%d\r\n"), 
             firmware_ver->twcid, 
             firmware_payload->major, 
             firmware_payload->minor, 
@@ -354,7 +354,7 @@ void TeslaController::DecodeSerialNumber(EXTENDED_RESP_PACKET_T *serial) {
     
 
     if (debug_) {
-        Serial.printf("Decoded: ID: %04x, Serial Number: ", serial->twcid);
+        Serial.printf_P(PSTR("Decoded: ID: %04x, Serial Number: "), serial->twcid);
         for (uint8_t i = 0; i < strlen((const char*)serial_payload->serial); i++) {
             Serial.printf("%c", serial_payload->serial[i]);
         }
@@ -413,7 +413,7 @@ void TeslaController::DecodePowerState(EXTENDED_RESP_PACKET_T *power_state) {
     };
 
     if (debug_) {
-        Serial.printf("Decoded: ID: %04x, Power State Total kWh %d, Phase Voltages: %d, %d, %d, Phase Currents: %d, %d, %d\r\n", 
+        Serial.printf_P(PSTR("Decoded: ID: %04x, Power State Total kWh %d, Phase Voltages: %d, %d, %d, Phase Currents: %d, %d, %d\r\n"), 
         power_state->twcid, 
         ntohl(power_state_payload->total_kwh), 
         ntohs(power_state_payload->phase1_voltage), 
@@ -429,7 +429,7 @@ void TeslaController::DecodePrimaryPresence(RESP_PACKET_T *presence, uint8_t num
     PRESENCE_PAYLOAD_T *presence_payload = (PRESENCE_PAYLOAD_T *)presence->payload;
 
     if (debug_) {
-        Serial.printf("Decoded: Primary Presence %d - ID: %02x, Sign: %02x\r\n", 
+        Serial.printf_P(PSTR("Decoded: Primary Presence %d - ID: %02x, Sign: %02x\r\n"), 
             num,
             presence->twcid, 
             presence_payload->sign
@@ -439,7 +439,7 @@ void TeslaController::DecodePrimaryPresence(RESP_PACKET_T *presence, uint8_t num
 
 void TeslaController::DecodePrimaryHeartbeat(P_HEARTBEAT_T *heartbeat) {
     if (debug_) {
-        Serial.printf("Decoded: Primary Heartbeat - ID: %02x, To %02x, State %02x, Max Current: %d, Plug Inserted: %02x\r\n", 
+        Serial.printf_P(PSTR("Decoded: Primary Heartbeat - ID: %02x, To %02x, State %02x, Max Current: %d, Plug Inserted: %02x\r\n"), 
             heartbeat->src_twcid, 
             heartbeat->dst_twcid,
             heartbeat->state,
@@ -466,7 +466,7 @@ void TeslaController::DecodePrimaryHeartbeat(P_HEARTBEAT_T *heartbeat) {
 
 void TeslaController::DecodeSecondaryHeartbeat(S_HEARTBEAT_T *heartbeat) {
     if (debug_) {
-        Serial.printf("Decoded: Secondary Heartbeat: ID: %02x, To: %02x, Status: %02x, Max Current: %d, Actual Current: %d\r\n",
+        Serial.printf_P(PSTR("Decoded: Secondary Heartbeat: ID: %02x, To: %02x, Status: %02x, Max Current: %d, Actual Current: %d\r\n"),
             heartbeat->src_twcid,
             heartbeat->dst_twcid,
             heartbeat->state,
@@ -532,7 +532,7 @@ void TeslaController::DecodeSecondaryPresence(RESP_PACKET_T *presence) {
     }
 
     if (!alreadySeen) {
-        Serial.printf("New charger seen - adding to controller. ID: %04x, Sign: %02x, Max Allowable Current: %d\r\n", 
+        Serial.printf_P(PSTR("New charger seen - adding to controller. ID: %04x, Sign: %02x, Max Allowable Current: %d\r\n"), 
             presence->twcid, 
             presence_payload->sign,
             ntohs(presence_payload->max_allowable_current)
@@ -575,7 +575,7 @@ void TeslaController::UpdateTotalActualCurrent() {
     }
 
     if (debug_) {
-        Serial.printf("Updating actual current to %f\r\n", total_current_);
+        Serial.printf_P(PSTR("Updating actual current to %f\r\n"), total_current_);
     }
     controller_io_->writeActualCurrent(total_current_);
 }
@@ -600,21 +600,21 @@ void TeslaController::DecodeVin(EXTENDED_RESP_PACKET_T *vin_data) {
 
     switch (ntohs(vin_data->command)) {
         case RESP_VIN_FIRST:
-            if (debug_) { Serial.printf("Decoded: ID: %04x, VIN First: ", vin_data->twcid); }
+            if (debug_) { Serial.printf_P(PSTR("Decoded: ID: %04x, VIN First: "), vin_data->twcid); }
             if (memcmp(&vin[0], &vin_payload->vin, sizeof(vin_payload->vin)) != 0) {
                 changed = true;
                 memcpy(&vin[0], &vin_payload->vin, sizeof(vin_payload->vin));
             }
             break;
         case RESP_VIN_MIDDLE:
-            if (debug_) { Serial.printf("Decoded: ID: %04x, VIN Middle: ", vin_data->twcid); }
+            if (debug_) { Serial.printf(PSTR("Decoded: ID: %04x, VIN Middle: "), vin_data->twcid); }
             if (memcmp(&vin[7], &vin_payload->vin, sizeof(vin_payload->vin)) != 0) {
                 changed = true;
                 memcpy(&vin[7], &vin_payload->vin, sizeof(vin_payload->vin));
             }
             break;
         case RESP_VIN_LAST:
-            if (debug_) { Serial.printf("Decoded: ID: %04x, VIN Last: ", vin_data->twcid); }
+            if (debug_) { Serial.printf(PSTR("Decoded: ID: %04x, VIN Last: "), vin_data->twcid); }
             if (memcmp(&vin[14], &vin_payload->vin, 3) != 0) {
                 changed = true;   
                 memcpy(&vin[14], &vin_payload->vin, 3);
@@ -630,7 +630,7 @@ void TeslaController::DecodeVin(EXTENDED_RESP_PACKET_T *vin_data) {
 
     if (debug_) {
         if (strlen((const char*)vin_payload->vin) == 0) {
-            Serial.print("No Car Connected");
+            Serial.print(F("No Car Connected"));
         }
         for (uint8_t i = 0; i < strlen((const char*)vin_payload->vin); i++) { 
             Serial.printf("%c", vin_payload->vin[i]); 
@@ -643,7 +643,7 @@ void TeslaController::DecodeVin(EXTENDED_RESP_PACKET_T *vin_data) {
 // Process a fully received packet (i.e. data with C0 on each end)
 void TeslaController::ProcessPacket(uint8_t *packet, size_t length) {
     if (debug_) {
-        Serial.printf("Recieved Packet: ");
+        Serial.print(F("Recieved Packet: "));
         for (uint8_t i = 0; i < length; i++) {
             Serial.printf("%02x", packet[i]);
         }
@@ -653,7 +653,7 @@ void TeslaController::ProcessPacket(uint8_t *packet, size_t length) {
     }
 
     if (!VerifyChecksum(packet, length)) {
-        Serial.printf("Error processing packet - checksum verify failed. Full packet: ");
+        Serial.print(F("Error processing packet - checksum verify failed. Full packet: "));
         for (uint8_t i = 0; i < length; i++) {
             Serial.printf("%02x", packet[i]);
         }
@@ -701,7 +701,7 @@ void TeslaController::ProcessPacket(uint8_t *packet, size_t length) {
             //DecodeGetVin((PACKET_T*)packet)
             break;   
         default:
-            Serial.printf("Unknown packet type received: %#02x: 0x", command);
+            Serial.printf_P(PSTR("Unknown packet type received: %#02x: 0x"), command);
             for (uint8_t i = 0; i < length; i++) {
                 Serial.printf("%02x", packet[i]);
             }
@@ -723,7 +723,7 @@ void TeslaController::SendData(uint8_t *packet, size_t length) {
     uint8_t j = 0;
 
     if (length > MAX_PACKET_LENGTH) {
-        Serial.println("Error - packet larger than maximum allowable size!");
+        Serial.println(F("Error - packet larger than maximum allowable size!"));
         return;
     }
 
@@ -731,7 +731,7 @@ void TeslaController::SendData(uint8_t *packet, size_t length) {
     switch (command) {
         case WRITE_ID_DATE:
         case WRITE_MODEL_NO:
-            Serial.println("WARNING! WRITE COMMANDS ATTEMPTED!  THESE CAN PERMANENTLY BREAK YOUR TWC.  COMMANDS BLOCKED!");
+            Serial.println(F("WARNING! WRITE COMMANDS ATTEMPTED!  THESE CAN PERMANENTLY BREAK YOUR TWC.  COMMANDS BLOCKED!"));
             return;
     }
 
@@ -756,7 +756,7 @@ void TeslaController::SendData(uint8_t *packet, size_t length) {
     outputBuffer[j++] = 0xFF;
 
     if (debug_) {
-        Serial.print("Sent packet: ");
+        Serial.print(F("Sent packet: "));
         for (uint8_t i = 0; i < j; i++) {
             Serial.printf("%02x", outputBuffer[i]);
         }
@@ -770,7 +770,7 @@ void TeslaController::SendData(uint8_t *packet, size_t length) {
 }
 
 void TeslaController::SetMaxCurrent(uint8_t max_current) {
-    Serial.printf("Setting maximum current to %d\r\n", max_current);
+    Serial.printf_P(PSTR("Setting maximum current to %d\r\n"), max_current);
     // Always check to make sure we're not trying to higher than the global max
     max_current_ = max_current <= MAX_CURRENT ? max_current : MAX_CURRENT;
 }

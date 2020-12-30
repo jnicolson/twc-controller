@@ -65,12 +65,12 @@ void setup() {
     button.begin();
 
     if(!SPIFFS.begin()) {
-        Serial.println("Cannot start SPIFFS!  Starting in configure mode... ");
+        Serial.println(F("Cannot start SPIFFS!  Starting in configure mode... "));
         StartConfigMode();
     };
 
     if (!twc_config.Begin()) {
-        Serial.println("Config initialisation failed.  Starting in configure mode.. ");
+        Serial.println(F("Config initialisation failed.  Starting in configure mode.. "));
         StartConfigMode();
     };
 
@@ -91,7 +91,7 @@ void setup() {
 
     controller.Startup();
 
-    Serial.println("Starting loop...");
+    Serial.println(F("Starting loop..."));
 }
 
 

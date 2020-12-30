@@ -22,7 +22,7 @@ TeslaMqttIO::TeslaMqttIO(PangolinMQTT &mqttClient) :
 {};
 
 void TeslaMqttIO::Begin(TWCConfig &twc_config) {
-  Serial.print("Connecting to MQTT... ");
+  Serial.print(F("Starting MQTT Client... "));
 
   // TODO: Fix this
   mqttClient_->setServer(twc_config.mqtt.server, twc_config.mqtt.port);
@@ -31,7 +31,7 @@ void TeslaMqttIO::Begin(TWCConfig &twc_config) {
   mqttClient_->onMessage([this](const char* topic, const uint8_t* payload, size_t len, uint8_t qos, bool retain, bool dup) { this->onMqttMessage(topic, payload, len, qos, retain, dup); });
   mqttClient_->onDisconnect([this](int8_t reason){ this->onMqttDisconnect(reason); });
   mqttClient_->connect();
-  Serial.println("Done!");
+  Serial.println(F("Done!"));
 }
 
 void TeslaMqttIO::onMqttMessage(const char* topic, const uint8_t* payload, size_t len, uint8_t qos, bool retain, bool dup) {
@@ -83,20 +83,21 @@ void TeslaMqttIO::onMqttMessage(const char* topic, const uint8_t* payload, size_
   }
   
   else {
-    Serial.println("Unknown MQTT Message Received");
+    Serial.println(F("Unknown MQTT Message Received"));
   }
 }
 
 void TeslaMqttIO::onMqttConnect(bool sessionPresent) {
-  Serial.println("Connected to MQTT");
+  Serial.print(F("Connected to MQTT! Subscribing to topics... "));
   mqttClient_->subscribe("twcController/debugEnabled", 2);
   mqttClient_->subscribe("twcController/availableCurrent", 2);
   mqttClient_->subscribe("twcController/mode", 2);
   mqttClient_->subscribe("twcController/debug/packetSend", 2);
+  Serial.println(F("Done!"));
 }
 
 void TeslaMqttIO::onMqttDisconnect(int8_t reason) {
-  Serial.println("Disconnected from MQTT.  Attempting to reconnect...");
+  Serial.println(F("Disconnected from MQTT.  Attempting to reconnect..."));
   mqttClient_->connect();
 }
 
@@ -188,7 +189,7 @@ void TeslaMqttIO::writeChargerVoltage(uint16_t twcid, uint16_t voltage, uint8_t 
 
 void TeslaMqttIO::writeChargerCurrent(uint16_t twcid, uint8_t current, uint8_t phase) {
   if (phase > 3) {
-    Serial.println("Phase should be 3 or less");
+    Serial.println(F("Phase should be 3 or less"));
     return;
   }
 

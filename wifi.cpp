@@ -24,7 +24,7 @@ Wifi::Wifi()
 {};
 
 void Wifi::Begin(TWCConfig &twc_config) {
-  Serial.println("Starting Wifi... ");
+  Serial.print(F("Starting Wifi... "));
 
   SetCountry();
   WiFi.setTxPower(WIFI_POWER_19_5dBm);
@@ -40,12 +40,12 @@ void Wifi::Begin(TWCConfig &twc_config) {
     counter += 500;
 
     if (counter >= 10000) {
-        Serial.println("Timeout expired - restarting...");
+        Serial.println(F("Timeout expired - restarting..."));
         ESP.restart();
     }
   }
 
-  Serial.println("Wifi Started!");
+  Serial.println(F(" Started!"));
 
 };
 
@@ -68,11 +68,11 @@ IPAddress Wifi::LocalIP() {
 }
 
 void Wifi::Reset() {
-    Serial.print("Resetting Wifi... ");
+    Serial.print(F("Resetting Wifi... "));
     WiFi.disconnect(1,1);
-    Serial.print("Done!  Resetting config... ");
+    Serial.print(F("Done!  Resetting config... "));
     delay(1000);
-    Serial.println("Done! Restarting..");
+    Serial.println(F("Done! Restarting.."));
     ESP.restart();
 }
 

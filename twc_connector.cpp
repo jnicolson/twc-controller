@@ -49,7 +49,7 @@ uint8_t TeslaConnector::GetPhaseCurrent(uint8_t phase) {
             return phase3_current;
             break;
         default:
-            Serial.println("Request for phase >3 - ignored");
+            Serial.println(F("Request for phase >3 - ignored"));
             return 0;
     }
 }
