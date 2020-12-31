@@ -46,9 +46,10 @@ class TeslaMqttIO : public TeslaControllerIO {
         void writeChargerConnectedVin(uint16_t twcid, uint8_t* vin);
         void writeChargerState(uint16_t twcid, uint8_t state);
         void writeTotalConnectedCars(uint8_t connected_cars);
-        void stopCharging();
         void writeState();
         void writeActualCurrent(uint8_t actualCurrent);
+        void writeStopCharging(uint16_t twcid);
+        void writeStartCharging(uint16_t twcid);
     private:
         void onMqttConnect(bool sessionPresent);
         void onMqttDisconnect(int8_t reason);

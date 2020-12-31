@@ -40,8 +40,8 @@ class TeslaControllerIO {
         virtual void writeChargerConnectedVin(uint16_t, uint8_t*) = 0;
         virtual void writeChargerState(uint16_t, uint8_t) = 0;
         virtual void writeTotalConnectedCars(uint8_t) = 0;
-        virtual void writeState() = 0;
-        virtual void stopCharging() = 0;
+        virtual void writeStopCharging(uint16_t) = 0;
+        virtual void writeStartCharging(uint16_t) = 0;
 };
 
 #endif /* IO_H */

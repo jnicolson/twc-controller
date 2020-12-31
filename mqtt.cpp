@@ -109,8 +109,18 @@ void TeslaMqttIO::onChargeChangeMessage() {
 
 }
 
-void TeslaMqttIO::stopCharging() {
+void TeslaMqttIO::writeStopCharging(uint16_t twcid) {
+  char buffer[10];
+  snprintf(buffer, sizeof(buffer), "%04x", twcid);
 
+  mqttClient_->publish("twcController/stopCharging", (uint8_t *)buffer, strlen(buffer), 2, false);
+}
+
+void TeslaMqttIO::writeStartCharging(uint16_t twcid) {
+  char buffer[10];
+  snprintf(buffer, sizeof(buffer), "%04x", twcid);
+
+  mqttClient_->publish("twcController/startCharging", (uint8_t *)buffer, strlen(buffer), 2, false);
 }
 
 void TeslaMqttIO::onCurrentMessage(std::function<void(uint8_t)> callback) {

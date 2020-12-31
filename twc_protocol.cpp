@@ -256,6 +256,19 @@ void TeslaController::SendPresence2() {
     SendPresence(true);
 }
 
+// Stops the car connected to a TWC from charging. Ideally, this would be by
+// using the 0xFCB2 command, but this cuts the power off seemingly without
+// notifying the car, resulting in an error condition.  Instead this
+// sends an IO message which is picked up by a component which uses the Tesla
+// API to stop charging
+void TeslaController::StopCharging(uint16_t twcid) {
+    controller_io_->writeStopCharging(twcid);
+}
+
+void TeslaController::StartCharging(uint16_t twcid) {
+    controller_io_->writeStartCharging(twcid);
+}
+
 uint8_t TeslaController::ChargersConnected() {
     return num_connected_chargers_;
 }

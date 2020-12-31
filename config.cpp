@@ -38,6 +38,8 @@ bool TWCConfig::CreateDefaultConfig() {
 
   JsonObject tesla = doc.createNestedObject();
   tesla["max_current"] = MAX_CURRENT;
+  tesla["min_current"] = MIN_CURRENT;
+  tesla["stop_delay"] = DEFAULT_STOP_DELAY;
 
   File file = SPIFFS.open(config_file_, "w");
 
@@ -77,6 +79,8 @@ bool TWCConfig::Begin() {
   mqtt.port = doc["mqtt"]["port"];
 
   tesla.max_current = doc["tesla"]["max_current"] | MAX_CURRENT;
+  tesla.min_current = doc["tesla"]["min_current"] | MIN_CURRENT;
+  tesla.stop_delay = doc["tesla"]["stop_delay"] | DEFAULT_STOP_DELAY;
 
   configFile.close();
   return true;

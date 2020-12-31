@@ -190,6 +190,8 @@ class TeslaController {
         void UpdateTotalActualCurrent();
         void UpdateTotalPhaseCurrent(uint8_t phase);
         void UpdateTotalConnectedCars();
+        void StopCharging(uint16_t twcid);
+        void StartCharging(uint16_t twcid);
 
     private:
         uint8_t CalculateChecksum(uint8_t *buffer, size_t length);

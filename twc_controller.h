@@ -29,7 +29,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // this then it will be set to 32.  This is to stop accidental typing
 // of larger values
 #define MAX_CURRENT 32
-#define DEFAULT_CURRENT 6
+#define MIN_CURRENT 10 // Minimum current to either start charging or stop charging
+#define DEFAULT_STOP_DELAY 300 // Time required under the minimum current to stop charging
 
 #define DEFAULT_MQTT_PORT 1883
 
