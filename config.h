@@ -33,7 +33,7 @@ struct MqttConfig {
 struct TeslaConfig {
     uint8_t max_current;
     uint8_t min_current;
-    uint16_t stop_delay;
+    uint16_t stopstart_delay;
 };
 
 class TWCConfig {

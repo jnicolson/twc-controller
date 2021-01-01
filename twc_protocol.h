@@ -185,6 +185,8 @@ class TeslaController {
         void DecodeSerialNumber(EXTENDED_RESP_PACKET_T *serial);
         void SetCurrent(uint8_t current);
         void SetMaxCurrent(uint8_t maxCurrent);
+        void SetMinCurrent(uint8_t mincurrent);
+        void SetStopStartDelay(uint16_t stopstart_delay);
         uint8_t ChargersConnected();
         TeslaConnector * GetConnector(uint16_t twcid);
         void UpdateTotalActualCurrent();
@@ -192,6 +194,7 @@ class TeslaController {
         void UpdateTotalConnectedCars();
         void StopCharging(uint16_t twcid);
         void StartCharging(uint16_t twcid);
+        bool IsCharging();
 
     private:
         uint8_t CalculateChecksum(uint8_t *buffer, size_t length);
@@ -201,7 +204,8 @@ class TeslaController {
         void DecodeSecondaryHeartbeat();
         void ProcessPacket(uint8_t *packet, size_t length);
         static void startupTask_(void *pvParameter);
-
+        static void offDelayCallback_(TimerHandle_t xTimer);
+        static void onDelayCallback_(TimerHandle_t xTimer);
         void Debug(bool enabled);
         void SendDataFromString(const uint8_t* dataString, size_t length);
 
@@ -216,10 +220,14 @@ class TeslaController {
         bool message_started_ = false;
         uint8_t available_current_;
         uint8_t max_current_;
+        uint8_t min_current_;
+        uint16_t stopstart_delay_;
         bool current_changed_;
         bool debug_;
         uint8_t total_current_;
         TeslaConnector* chargers[3];
+        TimerHandle_t offDelayTimer_;
+        TimerHandle_t onDelayTimer_;
 };
 
 #endif /* TWC_PROTOCOL_H */

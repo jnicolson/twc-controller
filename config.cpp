@@ -80,7 +80,7 @@ bool TWCConfig::Begin() {
 
   tesla.max_current = doc["tesla"]["max_current"] | MAX_CURRENT;
   tesla.min_current = doc["tesla"]["min_current"] | MIN_CURRENT;
-  tesla.stop_delay = doc["tesla"]["stop_delay"] | DEFAULT_STOP_DELAY;
+  tesla.stopstart_delay = doc["tesla"]["stopstart_delay"] | DEFAULT_STOP_DELAY;
 
   configFile.close();
   return true;

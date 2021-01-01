@@ -25,6 +25,8 @@ TeslaController::TeslaController(HardwareSerial& serial, TeslaControllerIO& io) 
     serial_(&serial),
     controller_io_(&io),
     max_current_(0),
+    min_current_(0),
+    stopstart_delay_(0),
     num_connected_chargers_(0),
     twcid_(TWCID),
     sign_(0x77),
@@ -53,6 +55,9 @@ void TeslaController::Begin() {
 void TeslaController::Startup() {
     Serial.print(F("Starting up Tesla Controller task as primary... "));
     xTaskCreate(this->startupTask_, "TeslaControllerTask", 2048, this, 1, NULL);
+    offDelayTimer_ = xTimerCreate("OffDelayTimer", stopstart_delay_ * 1000 / portTICK_PERIOD_MS, pdFALSE, (void *)this, this->offDelayCallback_);
+    onDelayTimer_ =  xTimerCreate("OnDelayTimer",  stopstart_delay_ * 1000 / portTICK_PERIOD_MS, pdFALSE, (void *)this, this->onDelayCallback_);
+    
     Serial.println(F("Done!"));
 }
 
@@ -118,6 +123,32 @@ void TeslaController::startupTask_(void *pvParameter) {
 
     // This should never be reached, but just in case, make sure the task is cleaned up
     vTaskDelete(NULL);
+}
+
+// This is a static method which is the callback fired when the off delay timer hits
+// the set time.  The timer contains a void pointer to the main class, which we cast
+// back into the class so we can call class methods from inside the static method.
+void TeslaController::offDelayCallback_(TimerHandle_t xTimer) {
+    TeslaController* twc = static_cast<TeslaController*>(pvTimerGetTimerID(xTimer));
+    Serial.println(F("Current below minimum for > allowable time - sending stop charging message... "));
+
+    if (twc->ChargersConnected() > 0) {
+        for (uint8_t i = 0; i < twc->ChargersConnected(); i++) {
+            twc->StopCharging(twc->chargers[i]->twcid);
+        }
+    }
+}
+
+void TeslaController::onDelayCallback_(TimerHandle_t xTimer) {
+    TeslaController* twc = static_cast<TeslaController*>(pvTimerGetTimerID(xTimer));
+    Serial.println(F("Current above minimum for > allowable time - sending start charging message... "));
+
+    if (twc->ChargersConnected() > 0) {
+        for (uint8_t i = 0; i < twc->ChargersConnected(); i++) {
+            twc->StartCharging(twc->chargers[i]->twcid);
+        }
+    }
+
 }
 
 // This is run via the main arduino loop() to actually receive data and do something with it
@@ -233,7 +264,47 @@ void TeslaController::SetCurrent(uint8_t current) {
 
     // If the available current is higher than the maximum for our charger,
     // clamp it to the maximum
-    available_current_ = current <= max_current_ ? current : max_current_;
+    if (current <= MAX_CURRENT & current >= MIN_CURRENT) {
+        available_current_ = current;
+    } else if (current > MAX_CURRENT) {
+        available_current_ = MAX_CURRENT;
+    } else if (current < MIN_CURRENT) {
+        available_current_ = MIN_CURRENT;
+    }
+
+    // Off delay timer is active, but we aren't charging.  Turn off timer
+    if (!IsCharging() & xTimerIsTimerActive(offDelayTimer_) == pdTRUE) {
+        xTimerStop(offDelayTimer_, 0);
+    }
+
+    // We're below our configured minimum, we are charging and the timer is not active.
+    // Start the timer.
+    if (current < min_current_ & IsCharging() & xTimerIsTimerActive(offDelayTimer_) != pdTRUE) {
+        xTimerStart(offDelayTimer_, 0);
+    } 
+    
+    // We're above our configured minimum current, we are charging and the timer is active.
+    // Stop the timer
+    if (current >= min_current_ & IsCharging() & xTimerIsTimerActive(offDelayTimer_) == pdTRUE) {
+        xTimerStop(offDelayTimer_, 0);
+    }
+
+    // Current is above our configured minimum but we aren't charging and the timer isn't running.
+    // Start the timer.
+    if (current >= min_current_ & !IsCharging() & xTimerIsTimerActive(onDelayTimer_) != pdTRUE) {
+        xTimerStart(onDelayTimer_, 0);
+    }
+
+    // Current is below our configured minimum but the timer is running.  Stop the timer.
+    if (current < min_current_ & !IsCharging() & xTimerIsTimerActive(onDelayTimer_) == pdTRUE) {
+        xTimerStop(onDelayTimer_, 0);
+    }
+
+    // Current is above our configured minimum, we are charging but the timer is running.  Stop the timer.
+    if (current >= min_current_ & IsCharging() & xTimerIsTimerActive(onDelayTimer_) == pdTRUE) {
+        xTimerStop(onDelayTimer_, 0);
+    }
+
 }
 
 void TeslaController::SendPresence(bool presence2) {
@@ -250,6 +321,14 @@ void TeslaController::SendPresence(bool presence2) {
    presence.checksum = CalculateChecksum((uint8_t*)&presence, sizeof(presence));
 
    SendData((uint8_t*)&presence, sizeof(presence));
+}
+
+bool TeslaController::IsCharging() {
+    if (total_current_ > 0) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 void TeslaController::SendPresence2() {
@@ -787,3 +866,13 @@ void TeslaController::SetMaxCurrent(uint8_t max_current) {
     // Always check to make sure we're not trying to higher than the global max
     max_current_ = max_current <= MAX_CURRENT ? max_current : MAX_CURRENT;
 }
+
+void TeslaController::SetMinCurrent(uint8_t min_current) {
+    Serial.printf_P(PSTR("Setting minimum current to %d\r\n"), min_current);
+    min_current_ = min_current >= MIN_CURRENT ? min_current : MIN_CURRENT;
+};
+
+void TeslaController::SetStopStartDelay(uint16_t stopstart_delay) {
+    Serial.printf_P(PSTR("Setting stop/start delay to %d\r\n"), stopstart_delay);
+    stopstart_delay_ = stopstart_delay;
+};

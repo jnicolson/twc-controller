@@ -83,6 +83,8 @@ void setup() {
     MDNS.addService("http", "tcp", 80);
 
     controller.SetMaxCurrent(twc_config.tesla.max_current);
+    controller.SetMinCurrent(twc_config.tesla.min_current);
+    controller.SetStopStartDelay(twc_config.tesla.stopstart_delay);
 
     button.onPressedFor(3000, buttonHeld);
     if (button.supportsInterrupt()) {

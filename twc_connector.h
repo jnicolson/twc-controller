@@ -47,6 +47,7 @@ class TeslaConnector {
     private:
         uint8_t vin_[18];
         uint8_t actual_current_;
+        
 };
 
 #endif /* TWC_CONNECTOR_H */
