@@ -123,7 +123,7 @@ void OTA::Begin() {
       Serial.println("Start updating " + type);
     })
     .onEnd([]() {
-      Serial.println("\nEnd");
+      Serial.println(F("\nEnd"));
     })
     .onProgress([](unsigned int progress, unsigned int total) {
       Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
@@ -138,7 +138,7 @@ void OTA::Begin() {
     });
 
   ArduinoOTA.begin();
-  Serial.println("Done!");
+  Serial.println(F("Done!"));
 }
 
 void OTA::Handle() {

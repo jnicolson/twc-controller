@@ -61,7 +61,7 @@ bool TWCConfig::Begin() {
   File configFile = SPIFFS.open(config_file_, "r");
 
   if (!configFile) {
-    Serial.println("Failed to open config file.  Creating default..");
+    Serial.println(F("Failed to open config file.  Creating default.."));
     CreateDefaultConfig();
     return false;
   };

@@ -45,23 +45,23 @@ void TeslaMqttIO::onMqttMessage(const char* topic, const uint8_t* payload, size_
       long result = strtol((const char*)payload, &endPtr, 10);
 
       if ((uint8_t*)endPtr == payload) {
-        Serial.printf("Error converting MQTT current to number!\r\n");
+        Serial.printf_P(PSTR("Error converting MQTT current to number!\r\n"));
         returnCurrent = 0;
       } 
 
       else if (errno != 0 && result == 0) {
-        Serial.printf("An unspecified error occured converting MQTT current\r\n");
+        Serial.printf_P(PSTR("An unspecified error occured converting MQTT current\r\n"));
       }
       
       else if (errno == 0) {
         if (result > UCHAR_MAX || result < CHAR_MIN) {
-          Serial.printf("Number %d out of range (range is 0-255)\r\n", result);
+          Serial.printf_P(PSTR("Number %d out of range (range is 0-255)\r\n"), result);
           returnCurrent = 0;
         } else {
           returnCurrent = (uint8_t)result;
         }
       } else {
-        Serial.println("An error occured converting the MQTT current");
+        Serial.println(F("An error occured converting the MQTT current"));
       }
       if(onCurrentMessageCallback_) onCurrentMessageCallback_(returnCurrent);
 
@@ -184,7 +184,7 @@ void TeslaMqttIO::writeChargerSerial(uint16_t twcid, uint8_t* serial, size_t len
 
 void TeslaMqttIO::writeChargerVoltage(uint16_t twcid, uint16_t voltage, uint8_t phase) {
   if (phase > 3) {
-    Serial.println("Phase Should be 3 or less!");
+    Serial.println(F("Phase Should be 3 or less!"));
     return;
   }
 
