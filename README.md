@@ -1,3 +1,6 @@
+# Archived
+This repository is now archived - it has been replaced with an [ESPHome](https://esphome.io) external component based on this code (https://github.com/jnicolson/esphome-twc-controller)
+
 # TWC Controller
 
 This repo contains a work in progress Tesla Wall Charger controller to run on an ESP32.  It is not ready for use, but is a starting point.
